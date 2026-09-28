@@ -156,6 +156,8 @@
     if (!v.localService) s += 1; // networked voices (e.g. "Google US English") are usually clearer than the offline fallback
     return s;
   }
+  /** Bare single letters are ambiguous to TTS engines (e.g. "A" alone is often read as the article "a" -> "uh"). Spell them out. */
+  const LETTER_SPEECH = { A: "Ay", B: "Bee", C: "See", D: "Dee", E: "Ee", F: "Eff", G: "Jee", H: "Aitch", I: "Eye", J: "Jay", K: "Kay", L: "El", M: "Em", N: "En", O: "Oh", P: "Pee", Q: "Cue", R: "Ar", S: "Ess", T: "Tee", U: "You", V: "Vee", W: "Double-you", X: "Ex", Y: "Why", Z: "Zee" };
   const Audio = {
     voice: null,
     supported: "speechSynthesis" in window,
@@ -179,9 +181,11 @@
     speak(text, slow) {
       if (!this.supported || !text) return;
       if (!this.voice) this.voice = this.pickVoice();
+      const trimmed = String(text).trim();
+      const spoken = LETTER_SPEECH[trimmed.toUpperCase()] && trimmed.length === 1 ? LETTER_SPEECH[trimmed.toUpperCase()] : text;
       try {
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
+        const u = new SpeechSynthesisUtterance(spoken);
         u.lang = "en-US";
         if (this.voice) u.voice = this.voice;
         u.rate = slow || state.settings.slowAudio ? 0.6 : 0.9;
@@ -965,7 +969,7 @@
   const RENDERERS = {
     learn(ex) {
       lessonBody.innerHTML = '<div class="learn-card"><div class="q-kicker">' + (ex.refill ? "רגע, נזכיר את הכלל" : "לומדים") + "</div><h2>" + rich(ex.title, { noAudio: true }) + '</h2><div class="learn-expl">' + rich(ex.explanation) + "</div>" +
-        (ex.examples.length ? '<h3>דוגמאות</h3><ul class="examples">' + ex.examples.map(e => "<li>" + '<span class="ex-en" dir="ltr" lang="en">' + esc(e[0]) + "</span>" + sayButtons(e[0].replace(" — ", ", ")) + '<span class="ex-he">' + esc(e[1]) + "</span></li>").join("") + "</ul>" : "") +
+        (ex.examples.length ? '<h3>דוגמאות</h3><ul class="examples">' + ex.examples.map(e => "<li>" + '<span class="ex-en" dir="ltr" lang="en">' + esc(e[0]) + "</span>" + sayButtons(e[2] || e[0].replace(" — ", ", ")) + '<span class="ex-he">' + esc(e[1]) + "</span></li>").join("") + "</ul>" : "") +
         (ex.commonMistakes.length ? '<h3>⚠️ טעויות נפוצות</h3><ul class="mistakes">' + ex.commonMistakes.map(m => "<li>" + rich(m) + "</li>").join("") + "</ul>" : "") + "</div>";
       setAction(ex.refill ? "הבנתי, ממשיכים (הלבבות מתמלאים) ❤️" : "הבנתי, בואי נתרגל", true, "next");
     },

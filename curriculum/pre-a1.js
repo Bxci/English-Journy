@@ -9,8 +9,10 @@
 
   const LETTER_NAMES = { A: "אֵיי", B: "בִּי", C: "סִי", D: "דִּי", E: "אִי", F: "אֶף", G: "ג'ִי", H: "אֵייץ'", I: "אַיי", J: "ג'ֵיי", K: "קֵיי", L: "אֶל", M: "אֶם", N: "אֶן", O: "אוֹ", P: "פִּי", Q: "קְיוּ", R: "אַר", S: "אֶס", T: "טִי", U: "יוּ", V: "וִי", W: "דַּבֶּל-יוּ", X: "אֶקְס", Y: "וַאי", Z: "זִי" };
   const LETTER_WORDS = { A: "apple", B: "bag", C: "cat", D: "door", E: "egg", F: "fish", G: "girl", H: "house", I: "ink", J: "juice", K: "key", L: "lamp", M: "milk", N: "nine", O: "orange", P: "pen", Q: "queen", R: "red", S: "sun", T: "tea", U: "umbrella", V: "van", W: "water", X: "box", Y: "yes", Z: "zero" };
+  // Spoken form of each letter name (bare single letters like "A" are ambiguous to TTS engines -> often read as "a" -> "uh").
+  const LETTER_SPEECH = { A: "Ay", B: "Bee", C: "See", D: "Dee", E: "Ee", F: "Eff", G: "Jee", H: "Aitch", I: "Eye", J: "Jay", K: "Kay", L: "El", M: "Em", N: "En", O: "Oh", P: "Pee", Q: "Cue", R: "Ar", S: "Ess", T: "Tee", U: "You", V: "Vee", W: "Double-you", X: "Ex", Y: "Why", Z: "Zee" };
   const letterNote = (letters, title) => ({ title, body: "לכל אות: צורה גדולה, צורה קטנה, השם שלה ומילה לדוגמה. לחצי על 🔊 כדי לשמוע. (באות {X} המילה לדוגמה נגמרת ב-x: {box}.)",
-    examples: letters.split("").map(L => [L + " " + L.toLowerCase() + " — " + LETTER_WORDS[L], LETTER_NAMES[L]]) });
+    examples: letters.split("").map(L => [L + " " + L.toLowerCase() + " — " + LETTER_WORDS[L], LETTER_NAMES[L], LETTER_SPEECH[L] + ", " + LETTER_WORDS[L]]) });
 
   unit("pa-u1", "צעדים ראשונים", "🧭", [
     { id: "pa-intro", title: "איך קוראים אנגלית?", objective: "להבין שאנגלית נקראת משמאל לימין, ולהכיר אותיות גדולות וקטנות.",
