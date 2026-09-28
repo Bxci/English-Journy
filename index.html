@@ -2,9 +2,9 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>המסע לאנגלית — קורס אינטראקטיבי</title>
-<meta name="description" content="קורס אנגלית אינטראקטיבי בעברית, עם שיעורים, תרגולים, האזנה, ומתנות על כל הישג.">
+<meta name="description" content="קורס אנגלית אינטראקטיבי בעברית, מ-Pre-A1 ועד A2: שיעורים מדורגים, חזרה יומית, תרגול דיבור ושיחות מובנות.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Baloo+2:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -13,17 +13,17 @@
 
 <div id="app">
 
-  <!-- ===================== מסך פתיחה ===================== -->
-  <section id="screen-welcome" class="screen active">
+  <!-- ===================== פתיחה: שם ===================== -->
+  <section id="screen-welcome" class="screen active" aria-labelledby="welcome-title">
     <div class="welcome-card">
-      <div class="welcome-emoji">🌟📘✈️</div>
-      <h1>המסע לאנגלית</h1>
+      <div class="welcome-emoji" aria-hidden="true">🌟📘✈️</div>
+      <h1 id="welcome-title">המסע לאנגלית</h1>
       <p class="subtitle">קורס אנגלית אינטראקטיבי, שלב אחר שלב, בעברית מלאה</p>
-      <p class="tagline">כל שיעור = ידע חדש + מתנה קטנה שמחכה לך בסוף 🎁</p>
+      <p class="tagline">מ-Pre-A1 ועד A2 · כל שיעור = ידע חדש + מתנה קטנה בסוף 🎁</p>
 
       <div id="name-entry">
         <label for="user-name">איך קוראים לך?</label>
-        <input type="text" id="user-name" placeholder="הקלידי את השם שלך כאן">
+        <input type="text" id="user-name" placeholder="הקלידי את השם שלך כאן" autocomplete="given-name">
         <button id="btn-start" class="btn btn-primary">בואי נתחיל 🚀</button>
       </div>
 
@@ -35,47 +35,95 @@
     </div>
   </section>
 
-  <!-- ===================== מסך מפת שיעורים ===================== -->
-  <section id="screen-map" class="screen">
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="icon-btn" id="btn-map-home" title="חזרה לתחילת המפה">🏠</button>
-      </div>
-      <div class="topbar-title">
-        <span id="map-username-label"></span>, המסע שלך 🗺️
-      </div>
-      <div class="topbar-stats">
-        <span class="stat" title="רצף ימים">🔥 <b id="stat-streak">0</b></span>
-        <span class="stat" title="כוכבים שנאספו">⭐ <b id="stat-stars">0</b></span>
-        <span class="stat" title="מתנות שנפתחו">🎁 <b id="stat-gifts">0</b></span>
-      </div>
-    </header>
-
-    <div class="overall-progress-wrap">
-      <div class="overall-progress-label">התקדמות כללית בקורס: <b id="overall-progress-pct">0%</b></div>
-      <div class="progress-bar-outer"><div class="progress-bar-inner" id="overall-progress-bar"></div></div>
-    </div>
-
-    <div id="units-list" class="units-list"></div>
+  <!-- ===================== אונבורדינג ===================== -->
+  <section id="screen-onboarding" class="screen" aria-live="polite">
+    <div class="onb-card" id="onb-body"></div>
   </section>
 
-  <!-- ===================== מסך שיעור ===================== -->
+  <!-- ===================== היום (בית) ===================== -->
+  <section id="screen-home" class="screen has-nav">
+    <header class="topbar">
+      <div class="topbar-title" id="home-greeting"></div>
+      <div class="topbar-stats">
+        <span class="stat" title="ימי למידה ברצף"><span aria-hidden="true">🔥</span> <b id="stat-streak">0</b><span class="sr-only"> ימי רצף</span></span>
+        <span class="stat" title="כוכבים שנאספו"><span aria-hidden="true">⭐</span> <b id="stat-stars">0</b><span class="sr-only"> כוכבים</span></span>
+      </div>
+    </header>
+    <div class="home-body">
+      <p class="home-flavor" id="home-flavor"></p>
+      <div class="today-card">
+        <div class="today-head">
+          <h2>התוכנית להיום</h2>
+          <span class="today-minutes" id="today-minutes"></span>
+        </div>
+        <div class="progress-bar-outer" aria-hidden="true"><div class="progress-bar-inner" id="today-bar"></div></div>
+        <ol class="plan-list" id="plan-list"></ol>
+      </div>
+      <button id="btn-home-main" class="btn btn-primary btn-big">התחילי ללמוד</button>
+      <p class="home-level" id="home-level"></p>
+    </div>
+  </section>
+
+  <!-- ===================== מפת הקורס ===================== -->
+  <section id="screen-map" class="screen has-nav">
+    <header class="topbar">
+      <div class="topbar-title">מפת הקורס 🗺️</div>
+    </header>
+    <div class="map-legend" aria-label="מקרא">
+      <span>✓ שלטת</span><span>◐ הושלם</span><span>● הבא בתור</span><span>○ פתוח</span><span>🔒 נעול</span>
+    </div>
+    <div id="map-body" class="map-body"></div>
+  </section>
+
+  <!-- ===================== שיחות ===================== -->
+  <section id="screen-convos" class="screen has-nav">
+    <header class="topbar">
+      <div class="topbar-title">תרגול שיחה 💬</div>
+    </header>
+    <div class="convo-note">
+      <b>שיחות מובנות, לא צ'אט חופשי.</b> כל שיחה נכתבה מראש, והיא משתמשת רק במילים ובדקדוק מהשיעורים שכבר סיימת. זו לא שיחה עם בינה מלאכותית, אבל זה תרגול בטוח של מצבים אמיתיים.
+    </div>
+    <div id="convo-list" class="convo-list"></div>
+  </section>
+
+  <section id="screen-chat" class="screen">
+    <header class="lesson-topbar">
+      <button class="icon-btn" id="btn-chat-exit" aria-label="יציאה מהשיחה">✖️</button>
+      <div class="chat-title" id="chat-title"></div>
+    </header>
+    <div class="chat-intro" id="chat-intro"></div>
+    <div id="chat-log" class="chat-log" aria-live="polite"></div>
+    <footer class="chat-footer">
+      <div id="chat-feedback" class="feedback-banner hidden" role="status"></div>
+      <div id="chat-choices" class="chat-choices"></div>
+    </footer>
+  </section>
+
+  <!-- ===================== התקדמות ===================== -->
+  <section id="screen-progress" class="screen has-nav">
+    <header class="topbar">
+      <div class="topbar-title">ההתקדמות שלי 📈</div>
+    </header>
+    <div id="progress-body" class="progress-body"></div>
+  </section>
+
+  <!-- ===================== שיעור / תרגול ===================== -->
   <section id="screen-lesson" class="screen">
     <header class="lesson-topbar">
-      <button class="icon-btn" id="btn-lesson-exit" title="יציאה לשיעור">✖️</button>
-      <div class="lesson-progress-outer">
+      <button class="icon-btn" id="btn-lesson-exit" aria-label="יציאה מהשיעור">✖️</button>
+      <div class="lesson-progress-outer" role="progressbar" aria-label="התקדמות בשיעור" aria-valuemin="0" aria-valuemax="100" id="lesson-progress">
         <div class="lesson-progress-inner" id="lesson-progress-bar"></div>
       </div>
-      <div class="lesson-hearts" id="lesson-hearts">❤️❤️❤️</div>
+      <div class="lesson-hearts" id="lesson-hearts" aria-label="לבבות"></div>
     </header>
 
     <div id="lesson-body" class="lesson-body"></div>
 
     <footer class="lesson-footer">
-      <div id="feedback-banner" class="feedback-banner hidden">
-        <div class="feedback-icon" id="feedback-icon">✅</div>
+      <div id="feedback-banner" class="feedback-banner hidden" role="status" aria-live="polite">
+        <div class="feedback-icon" id="feedback-icon" aria-hidden="true">✅</div>
         <div class="feedback-text">
-          <div id="feedback-title" class="feedback-title">כל הכבוד!</div>
+          <div id="feedback-title" class="feedback-title"></div>
           <div id="feedback-sub" class="feedback-sub"></div>
         </div>
       </div>
@@ -83,12 +131,17 @@
     </footer>
   </section>
 
-  <!-- ===================== מסך סיום שיעור / מתנה ===================== -->
+  <!-- ===================== מסך ביניים (חיזוק / סיכום) ===================== -->
+  <section id="screen-interstitial" class="screen">
+    <div class="reward-card" id="inter-card"></div>
+  </section>
+
+  <!-- ===================== סיום שיעור / מתנה ===================== -->
   <section id="screen-reward" class="screen">
     <div class="reward-card">
-      <div class="reward-burst" id="reward-burst">🎉</div>
+      <div class="reward-burst" id="reward-burst" aria-hidden="true">🎉</div>
       <h2 id="reward-title">שיעור הושלם!</h2>
-      <div class="reward-gift-box" id="reward-gift-box">🎁</div>
+      <button class="reward-gift-box" id="reward-gift-box" aria-label="לפתוח את המתנה">🎁</button>
       <p class="reward-message" id="reward-message"></p>
 
       <div class="reward-stats">
@@ -96,9 +149,10 @@
         <div class="reward-stat"><span class="reward-stat-num" id="reward-accuracy">0%</span><span class="reward-stat-label">דיוק</span></div>
         <div class="reward-stat"><span class="reward-stat-num" id="reward-streak">0</span><span class="reward-stat-label">ימי רצף</span></div>
       </div>
+      <p class="reward-note" id="reward-note"></p>
 
       <div id="badge-unlock" class="badge-unlock hidden">
-        <div class="badge-icon" id="badge-icon">🏅</div>
+        <div class="badge-icon" id="badge-icon" aria-hidden="true">🏅</div>
         <div class="badge-text">
           <div class="badge-title">עיטור חדש נפתח!</div>
           <div id="badge-name" class="badge-name"></div>
@@ -109,22 +163,47 @@
     </div>
   </section>
 
-  <!-- ===================== מסך תעודת סיום ===================== -->
+  <!-- ===================== תעודת סיום ===================== -->
   <section id="screen-certificate" class="screen">
     <div class="certificate-card">
-      <div class="cert-ribbon">🏆</div>
+      <div class="cert-ribbon" aria-hidden="true">🏆</div>
       <h2>תעודת הצטיינות</h2>
       <p class="cert-sub">מוענקת ל</p>
       <div class="cert-name" id="cert-name"></div>
-      <p class="cert-body">על השלמת קורס "המסע לאנגלית" בהצטיינות, ועל ההתמדה, האומץ והרצון האמיתי ללמוד שפה חדשה.</p>
-      <p class="cert-body cert-emph">את/ה כבר לא מתחיל/ה. את/ה דובר/ת אנגלית. 🌟</p>
-      <button id="btn-cert-close" class="btn btn-primary">חזרה למפת השיעורים</button>
+      <p class="cert-body" id="cert-body"></p>
+      <p class="cert-body cert-emph">את כבר לא מתחילה. את מדברת אנגלית. 🌟</p>
+      <button id="btn-cert-close" class="btn btn-primary">חזרה</button>
     </div>
   </section>
 
+  <nav class="bottom-nav hidden" id="bottom-nav" aria-label="ניווט ראשי">
+    <button data-nav="screen-home"><span aria-hidden="true">🏠</span>היום</button>
+    <button data-nav="screen-map"><span aria-hidden="true">🗺️</span>מפה</button>
+    <button data-nav="screen-convos"><span aria-hidden="true">💬</span>שיחה</button>
+    <button data-nav="screen-progress"><span aria-hidden="true">📈</span>התקדמות</button>
+  </nav>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 </div>
 
+<!-- תוכן הקורס (סדר הטעינה חשוב: course.js אחרון) -->
+<script src="curriculum/vocabulary.js"></script>
+<script src="curriculum/concepts.js"></script>
+<script src="curriculum/pre-a1.js"></script>
+<script src="curriculum/a1.js"></script>
+<script src="curriculum/a2.js"></script>
+<script src="curriculum/conversations.js"></script>
+<script src="curriculum/course.js"></script>
+<!-- מנוע הלמידה (פונקציות טהורות, נבדקות ב-tests/) -->
+<script src="engine/normalize.js"></script>
+<script src="engine/mastery.js"></script>
+<script src="engine/srs.js"></script>
+<script src="engine/unlock.js"></script>
+<script src="engine/mistakes.js"></script>
+<script src="engine/exercises.js"></script>
+<!-- הודעות, מתנות, עיטורים, מבחן רמה -->
 <script src="lessons-data.js"></script>
+<!-- ממשק -->
 <script src="script.js"></script>
 </body>
 </html>

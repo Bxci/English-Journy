@@ -6,7 +6,7 @@
 */
 
 // הודעות עידוד שיוצגו אחרי כל שיעור, באקראי
-const ENCOURAGEMENT_MESSAGES = [
+var ENCOURAGEMENT_MESSAGES = [
   "כל מילה שאת לומדת היא צעד קדימה. את מדהימה! 💪",
   "אין דבר כזה 'אני לא מסוגלת' — יש רק 'עוד לא'. תמשיכי כך!",
   "היום את קצת יותר קרובה לדבר אנגלית בביטחון. גאה בך!",
@@ -20,10 +20,10 @@ const ENCOURAGEMENT_MESSAGES = [
 ];
 
 // מתנות (אמוג'י) שנפתחות בסיום שיעור
-const GIFTS = ["🌸", "🍫", "🎈", "🧸", "🍭", "🌈", "💐", "🎀", "🍩", "⭐", "🎵", "☕", "🦄", "🍓", "🎨"];
+var GIFTS = ["🌸", "🍫", "🎈", "🧸", "🍭", "🌈", "💐", "🎀", "🍩", "⭐", "🎵", "☕", "🦄", "🍓", "🎨"];
 
 // עיטורים (badges) — לפי מספר שיעורים שהושלמו באמת (לא דילוג), ולפי סיום רמה
-const BADGES = [
+var BADGES = [
   { id: "b1", lessonsRequired: 1, icon: "🥉", name: "צעד ראשון" },
   { id: "b2", lessonsRequired: 5, icon: "🥈", name: "מתחילה בביטחון" },
   { id: "b3", lessonsRequired: 15, icon: "🥇", name: "חצי דרך ל-A1" },
@@ -35,7 +35,7 @@ const BADGES = [
 ];
 
 // מטרות למידה — משמשות רק לטקסט מעודד ולסדר הצעת השיחות. לא משנות את סדר הקורס!
-const LEARNING_GOALS = [
+var LEARNING_GOALS = [
   { id: "conversation", label: "שיחות יומיומיות", icon: "💬", flavor: "כל מה שלומדים היום — ישר לשיחה אמיתית." },
   { id: "travel", label: "טיולים", icon: "✈️", flavor: "עוד כמה מילים, והטיול הבא נהיה הרבה יותר קל." },
   { id: "work", label: "עבודה", icon: "💼", flavor: "צעד קטן היום — ביטחון גדול בפגישה הבאה." },
@@ -45,7 +45,7 @@ const LEARNING_GOALS = [
 ];
 
 // בדיקת רמה קצרה ואופציונלית (אפשר לדלג). level = הרמה שהשאלה בודקת.
-const PLACEMENT_TEST = [
+var PLACEMENT_TEST = [
   { level: "pre-a1", q: "מה הפירוש של {Thank you}?", a: "תודה", o: ["בבקשה", "סליחה"] },
   { level: "pre-a1", q: "איך כותבים 15?", a: "fifteen", o: ["fifty", "five"] },
   { level: "pre-a1", q: "{a red car} — מה זה?", a: "מכונית אדומה", o: ["מכונית כחולה", "אוטובוס אדום"] },
@@ -60,7 +60,7 @@ const PLACEMENT_TEST = [
 ];
 
 // מיפוי הקורס הישן (v1, 10 יחידות אוצר מילים) לשיעורים החדשים — לשמירת התקדמות קיימת
-const LEGACY_UNIT_MAP = {
+var LEGACY_UNIT_MAP = {
   u1: ["pa-greet-1", "pa-greet-2", "pa-greet-3"],
   u2: ["pa-num-1"],
   u3: ["pa-family"],
