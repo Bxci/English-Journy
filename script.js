@@ -158,6 +158,35 @@
   }
   /** Bare single letters are ambiguous to TTS engines (e.g. "A" alone is often read as the article "a" -> "uh"). Spell them out. */
   const LETTER_SPEECH = { A: "Ay", B: "Bee", C: "See", D: "Dee", E: "Ee", F: "Eff", G: "Jee", H: "Aitch", I: "Eye", J: "Jay", K: "Kay", L: "El", M: "Em", N: "En", O: "Oh", P: "Pee", Q: "Cue", R: "Ar", S: "Ess", T: "Tee", U: "You", V: "Vee", W: "Double-you", X: "Ex", Y: "Why", Z: "Zee" };
+
+  /** Same FNV-1a 32-bit hash as scripts/generate-audio.py, so pre-rendered clip filenames match. */
+  function fnv1a(s) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return (h >>> 0).toString(16).padStart(8, "0");
+  }
+
+  /** Pre-rendered human-voice clips (Piper TTS, MIT-licensed) for the most-heard English strings — see scripts/generate-audio.py. */
+  const AudioClips = {
+    manifest: null, // Set<hash> once loaded, or null while loading/unavailable
+    el: null,
+    init() {
+      fetch("audio/manifest.json").then(r => (r.ok ? r.json() : [])).then(list => { this.manifest = new Set(list); }).catch(() => { this.manifest = new Set(); });
+    },
+    has(text) { return !!(this.manifest && this.manifest.has(fnv1a(text))); },
+    play(text) {
+      if (!this.el) { this.el = new window.Audio(); this.el.preload = "auto"; }
+      this.el.pause();
+      this.el.src = "audio/clips/" + fnv1a(text) + ".mp3";
+      this.el.currentTime = 0;
+      this.el.play().catch(() => { /* autoplay/user-gesture edge cases -> silently skip */ });
+    },
+  };
+  AudioClips.init();
+
   const Audio = {
     voice: null,
     supported: "speechSynthesis" in window,
@@ -179,7 +208,10 @@
       window.speechSynthesis.onvoiceschanged = choose;
     },
     speak(text, slow) {
-      if (!this.supported || !text) return;
+      if (!text) return;
+      // Real recorded human voice beats synthesis whenever we have a clip for it (not for slow-mode: clips are fixed-rate).
+      if (!slow && !state.settings.slowAudio && AudioClips.has(text)) { AudioClips.play(text); return; }
+      if (!this.supported) return;
       if (!this.voice) this.voice = this.pickVoice();
       const trimmed = String(text).trim();
       const spoken = LETTER_SPEECH[trimmed.toUpperCase()] && trimmed.length === 1 ? LETTER_SPEECH[trimmed.toUpperCase()] : text;

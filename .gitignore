@@ -1,1 +1,10 @@
 node_modules/
+__pycache__/
+
+# Piper TTS voice model used only to pre-generate audio/clips/*.mp3 (see scripts/generate-audio.py).
+# Not needed at runtime or in the repo — the generated clips + manifest are what's committed.
+scripts/audio-gen/*.onnx
+scripts/audio-gen/*.onnx.json
+scripts/audio-gen/texts.json
+scripts/audio-gen/texts-test.json
+scripts/audio-gen/collect.log

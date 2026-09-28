@@ -263,6 +263,22 @@ The validator checks unique ids; valid level/title/objective; prerequisites and 
 | Guaranteed speech recognition | Browser-dependent (not Firefox; Chrome needs network) | Server-side STT |
 | Deployment | None exists in this environment | Any static host works as-is |
 | A2 lessons beyond the first 7 | Six A2 lessons are skeletons (ids, prerequisites, objectives, concept explanations) | Author exercises in `curriculum/a2.js`, remove `status: "planned"`, run `npm run validate` |
-| Audio recordings by native speakers | Only browser TTS | Recorded audio files per vocabulary item/example |
 
 **Highest-value next milestone if infrastructure becomes available:** a tiny backend with auth + a synced progress document (so the learner can't lose progress and can switch devices), then a server-side, level-constrained LLM conversation partner that reuses this curriculum's per-lesson vocabulary/grammar as its guardrails.
+
+## 15. Pre-rendered audio (real human voice instead of browser TTS)
+
+`audio/clips/*.mp3` holds real recorded-sounding audio (generated once, offline, with [Piper TTS](https://github.com/rhasspy/piper) — MIT-licensed, the `en_US-hfc_female-medium` voice, also MIT) for the ~1,200 most-heard English strings in the app: every vocabulary word + example sentence, every concept example, every conversation line, every reading article sentence, and the alphabet. `audio/manifest.json` lists which strings have a clip (by a stable hash of the text, see below).
+
+At runtime, `Audio.speak()` in `script.js` checks the manifest first and plays the real clip if one exists; anything not covered (ad-hoc English phrases embedded in exercise Hebrew text, typed answers, etc.) falls back to the browser's own `speechSynthesis`, same as before this feature existed — nothing regresses, coverage only ever adds quality.
+
+**Regenerating the audio** (only needed after curriculum text changes, or never — the app works fine without doing this, just with more browser-TTS fallback):
+```bash
+pip install piper-tts
+python -m piper.download_voices en_US-hfc_female-medium --download-dir scripts/audio-gen
+node scripts/collect-audio-texts.js > scripts/audio-gen/texts.json
+python scripts/generate-audio.py
+```
+This is safe to re-run — it skips any clip that already exists, so only new/changed text gets synthesized. The voice model (`scripts/audio-gen/*.onnx`, ~60MB) is gitignored — only the generated `audio/clips/*.mp3` + `audio/manifest.json` are committed, so nobody needs Piper installed just to run the app.
+
+The hash (FNV-1a 32-bit) is implemented identically in `scripts/generate-audio.py` (Python) and `script.js` (`fnv1a()`) so both sides agree on filenames without shipping the text list itself to the browser.
