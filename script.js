@@ -1173,7 +1173,10 @@
             listening = null; mic.classList.remove("listening"); tries++;
             const r = N.matchSpeech(alts, ex.accept);
             if (r.ok) { status.innerHTML = "שמעתי: " + enSpan(alts[0]) + " ✅"; resolve({ ok: true, given: alts[0] }); return; }
-            status.innerHTML = "שמעתי: " + enSpan(alts[0] || "…") + (r.missing.length ? "<br>חסר: " + enSpan(r.missing.join(", ")) : "") + "<br>נסי שוב" + (tries >= 2 ? " — או סמני ידנית אם אמרת נכון (זיהוי דיבור לא תמיד מדויק)." : ".");
+            status.innerHTML = "שמעתי: " + enSpan(alts[0] || "…") +
+              (r.missing.length ? "<br>חסר: " + enSpan(r.missing.join(", ")) : "") +
+              (r.extra.length ? "<br>מילים נוספות ששמעתי: " + enSpan(r.extra.join(", ")) : "") +
+              "<br>נסי שוב" + (tries >= 2 ? " — או סמני ידנית אם אמרת נכון (זיהוי דיבור לא תמיד מדויק)." : ".");
           },
           onError: code => { listening = null; mic.classList.remove("listening"); status.textContent = STT_ERRORS[code] || "משהו השתבש. נסי שוב או סמני ידנית."; },
         });

@@ -139,29 +139,36 @@
   }
 
   /**
-   * matchSpeech(transcripts, expected) -> { ok, score, best, missing }
+   * matchSpeech(transcripts, expected) -> { ok, score, best, matched, missing, extra }
    * Speech-to-text transcripts vary (e.g. "hello how are you" vs "Hello, how are you?").
-   * We only check that the intended words were produced — NOT pronunciation quality.
+   * We only check that the intended words were produced — NOT pronunciation quality
+   * (browser speech recognition cannot grade accent/pronunciation; the UI must say so, never
+   * label this "pronunciation accuracy" — see README §9 and §16).
    * ok when an accepted phrase matches exactly (normalized) or >= 80% of its words appear in order-insensitive overlap
    * and nothing is missing except at most one short word.
+   *
+   * matched: expected words that were found in the transcript.
+   * missing: expected words that were NOT found (what the learner needs to add/retry).
+   * extra: transcript words left over after matching (filler words like "uh", or genuinely wrong
+   * words) — informational only, never counted against `ok`, since recognizers often add filler.
    */
   function matchSpeech(transcripts, expected) {
     const ts = (Array.isArray(transcripts) ? transcripts : [transcripts]).map(t => normalizeAnswer(t));
     const exps = (Array.isArray(expected) ? expected : [expected]);
-    let best = { ok: false, score: 0, best: null, missing: [] };
+    let best = { ok: false, score: 0, best: null, matched: [], missing: [], extra: [] };
     for (const e of exps) {
       const ew = normalizeAnswer(e).split(" ").filter(Boolean);
       for (const t of ts) {
-        if (t === ew.join(" ")) return { ok: true, score: 1, best: e, missing: [] };
-        const tw = t.split(" ");
+        if (t === ew.join(" ")) return { ok: true, score: 1, best: e, matched: ew.slice(), missing: [], extra: [] };
+        const tw = t.split(" ").filter(Boolean);
         const pool = tw.slice();
-        const missing = [];
+        const matched = [], missing = [];
         ew.forEach(w => {
           const i = pool.indexOf(w);
-          if (i >= 0) pool.splice(i, 1); else missing.push(w);
+          if (i >= 0) { pool.splice(i, 1); matched.push(w); } else missing.push(w);
         });
-        const score = ew.length ? (ew.length - missing.length) / ew.length : 0;
-        if (score > best.score) best = { ok: false, score, best: e, missing };
+        const score = ew.length ? matched.length / ew.length : 0;
+        if (score > best.score) best = { ok: false, score, best: e, matched, missing, extra: pool };
       }
     }
     best.ok = best.score >= 0.8 && best.missing.length <= 1;

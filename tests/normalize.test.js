@@ -75,3 +75,19 @@ test("speech matching checks the intended words, tolerant to STT formatting", ()
   assert.deepEqual(miss.missing, ["is", "dana"]);
   assert.ok(N.matchSpeech(["nothing", "my name is Dana"], "My name is Dana").ok, "any alternative transcript may match");
 });
+
+test("matchSpeech returns matched/extra alongside missing, for structured speaking feedback", () => {
+  const exact = N.matchSpeech(["my name is dana"], ["My name is Dana."]);
+  assert.deepEqual(exact.matched, ["my", "name", "is", "dana"]);
+  assert.deepEqual(exact.extra, []);
+
+  const filler = N.matchSpeech(["uh I'm thirty"], ["I am thirty"]);
+  assert.deepEqual(filler.matched, ["i", "am", "thirty"]);
+  assert.deepEqual(filler.extra, ["uh"]);
+  assert.ok(filler.ok, "extra words never fail the check, only missing ones do");
+
+  const partial = N.matchSpeech(["my name"], ["My name is Dana."]);
+  assert.deepEqual(partial.matched, ["my", "name"]);
+  assert.deepEqual(partial.missing, ["is", "dana"]);
+  assert.deepEqual(partial.extra, []);
+});
