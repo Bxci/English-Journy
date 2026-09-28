@@ -9,3 +9,8 @@ scripts/audio-gen/texts.json
 scripts/audio-gen/texts-test.json
 scripts/audio-gen/collect.log
 scripts/audio-gen/gen.log
+
+# Playwright E2E run artifacts (traces/reports/downloads from `npm run e2e`) — not project content.
+test-results/
+playwright-report/
+blob-report/

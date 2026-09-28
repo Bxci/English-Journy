@@ -6,9 +6,13 @@
   "scripts": {
     "test": "node --test tests",
     "validate": "node scripts/validate-curriculum.js",
-    "check": "node scripts/check-syntax.js"
+    "check": "node scripts/check-syntax.js",
+    "e2e": "playwright test"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
   }
 }

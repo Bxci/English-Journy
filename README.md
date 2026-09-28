@@ -242,16 +242,33 @@ Key `english-journey-state-v2`:
 npm test            # node --test tests   (Node 18+; no dependencies)
 npm run validate    # node scripts/validate-curriculum.js
 npm run check       # node --check on every JS file
+npm run e2e         # playwright test — real-browser end-to-end (see below)
 ```
 
 - `tests/mastery.test.js` — mastery properties (evidence, recognition cap, recency, decay, bounds, rounding, threshold constant).
 - `tests/srs.test.js` — Leitner intervals, relearning, leeches, purity, queue ordering; mistake memory; daily plan sizing.
 - `tests/unlock.test.js` — prerequisite and **concept-prerequisite** enforcement, placement, planned lessons, statuses, topo sort, reachability, real-course checks.
-- `tests/normalize.test.js` — typing leniency, contractions, numbers, typo vs grammar, sentence builder, speech matching.
+- `tests/normalize.test.js` — typing leniency, contractions, numbers, typo vs grammar, sentence builder, speech matching, `pickBestMatch()` (§18).
+- `tests/adaptive.test.js` — mastery-band labels, remediation ranking, dev-inspector reasons, concept snapshots (§16).
+- `tests/missions.test.js` — step keyword matching, progress tracking (§19).
 - `tests/curriculum.test.js` — validator passes, hierarchy, required topics, small irregular batches, LEARN-first + stage escalation, explanations, variations, review generation.
 - `tests/dom-smoke.test.js` — **optional** (skipped unless `jsdom` is resolvable, e.g. `npm install --no-save jsdom`): loads the real `index.html` and scripts and plays onboarding, **every lesson** through the DOM, the failing → reinforcement → continue path, daily review, remediation, all 8 conversations, placement, v1 migration and corrupt storage.
 
 The validator checks unique ids; valid level/title/objective; prerequisites and referenced vocab/concepts exist; ≥ 8 exercises, ≥ 3 exercise types and a production exercise per lesson; every exercise has a correct answer that is among its options; Hebrew explanations; concepts never used before they are taught (prerequisite closure); no cycles (topological sort); every lesson reachable from the start; ≥ 3 distinct remediation variations per taught concept; conversations well-formed and within level; `index.html` loads every file.
+
+### End-to-end tests (`e2e/`, Playwright)
+
+Unlike `tests/`, these drive a real Chromium (`npm run e2e`, or `--project=mobile-chrome` for a Pixel 7 viewport) against `scripts/e2e-server.js` (a 20-line static file server — no build step, the app IS the static files). 40 tests across 7 files, all passing on both viewports:
+
+- `onboarding.spec.js` — fresh learner through to the Daily Journey; a returning learner is greeted by name and never re-onboarded.
+- `lesson.spec.js` — starting a lesson; answering real exercises (reads the correct answer from the app's own live session state via `window.__EJ_APP__`, then performs it through real clicks/typing — not a hardcoded script for one lesson); the exit-lesson confirm dialog, including cancel-then-actually-exit.
+- `reading.spec.js` — article list, tap-to-hear sentences, finishing an article marks it read and schedules its vocabulary in the SRS.
+- `conversation.spec.js` — tap-to-reply, and the free-text reply box (§8/§18) accepting a real paraphrase.
+- `mission.spec.js` — a wrong/unrecognized attempt never blocks progress; completing every step (again, reading each step's real keyword from `window.MISSIONS`, not hardcoded per mission) finishes it and awards stars; exiting mid-mission preserves partial progress.
+- `progress.spec.js` — Mastery Map and Weekly Progress are correctly hidden with no data and correctly populated once seeded; completing a mission unlocks and displays a real achievement badge.
+- `backup-and-reset.spec.js` — export produces a real downloadable backup file; import rejects a malformed file safely (no crash); import previews and restores a valid one; reset requires confirmation and actually clears state; progress survives a real page reload through a genuine UI action (not a direct state write, so it exercises the actual save path).
+
+Where a test needs existing progress (e.g. an unlocked conversation, or a week of history for the summary card), it's seeded directly via `page.evaluate()` against `window.__EJ_APP__.state` — the same debug hook used throughout manual testing — rather than mechanically grinding through days of UI interaction just to reach the screen under test.
 
 ## 14. What is NOT implemented, and why
 
@@ -261,7 +278,6 @@ The validator checks unique ids; valid level/title/objective; prerequisites and 
 | True natural-language conversation (understanding genuinely novel phrasing, not just keyword/phrase matching) | No LLM API key is available, and a key embedded in frontend code would leak. Free-text replies (§8) are accepted via lexical matching (`pickBestMatch`, §18) against the scenario's authored candidate sentences — real coverage for reasonable paraphrases, but not true understanding of arbitrary input | A server-side proxy holding the key, calling a model constrained to the learner's unlocked vocabulary/grammar, plus the same post-conversation review |
 | Pronunciation / accent scoring | Browser speech recognition only returns text, not phoneme-level audio analysis — the UI is honest about this (§9, §18) | A pronunciation-assessment service (server-side) |
 | Guaranteed speech recognition | Browser-dependent (not Firefox; Chrome needs network) | Server-side STT |
-| A Playwright/E2E suite | Scoped out of this pass — real work, not started | A self-contained addition; doesn't require new infrastructure |
 | Full accessibility audit (color contrast measurements, complete screen-reader walkthrough) | A targeted pass found and fixed 3 real issues (§23) rather than a systematic top-to-bottom audit — genuinely not the same thing | A full WCAG pass with a screen reader (NVDA/VoiceOver) and a contrast-ratio tool over every screen |
 | Verified live PWA installation/offline behavior | Built (§20), but this development environment's browser preview blocks service worker registration entirely — needs a real-browser check after deployment | Open the deployed site in Chrome/Edge/Safari and verify via DevTools |
 | Deployment | None exists in this environment | Any static host works as-is |
