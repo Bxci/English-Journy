@@ -47,7 +47,8 @@
       articlesRead: {},   // articleId -> { at }
       missions: {},       // missionId -> { completedAt, stepsDone: [stepId,...], attempts }
       certificates: {},   // level -> date
-      daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0 },
+      daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0 },
+      history: [],         // archived daily records (last ~60 days) for the Weekly Progress summary
       time: { totalSeconds: 0 },
       settings: { slowAudio: false, voiceURI: null },
       legacy: null,
@@ -107,7 +108,10 @@
 
   function rollDaily() {
     const t = todayStr();
-    if (state.daily.date !== t) state.daily = { date: t, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0 };
+    if (state.daily.date !== t) {
+      if (state.daily.date) state.history = (state.history || []).concat([state.daily]).slice(-60);
+      state.daily = { date: t, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0 };
+    }
   }
 
   function markStudiedToday() {
@@ -768,6 +772,7 @@
     if (res.skipped) { goNext(); return; }
     const w = res.selfMarked ? M.EXERCISE_WEIGHTS.selfMarked : ex.w;
     recordAttempt(ex, res.ok, { w, given: res.given });
+    if (ex.type === "speak" && res.ok) { rollDaily(); state.daily.spokenDone = (state.daily.spokenDone || 0) + 1; }
     session.answeredCount++;
     if (session.round === "main") { if (!(ex.id in session.first)) session.first[ex.id] = { ok: res.ok, w, type: ex.type }; }
     else session.reinforceAttempts.push({ ok: res.ok, w });
@@ -1517,6 +1522,46 @@
     reader.readAsText(file);
   }
 
+  /** Sums this week's (last 7 calendar days, incl. today) activity from state.history + state.daily, plus the
+   *  concept with the biggest real mastery gain in that window (computed from actual attempt timestamps —
+   *  no separate snapshot storage needed). */
+  function weeklyStats() {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 6);
+    const cutoffStr = todayStr(cutoff);
+    const week = (state.history || []).concat([state.daily]).filter(d => d.date >= cutoffStr);
+    const sum = k => week.reduce((s, d) => s + (d[k] || 0), 0);
+    const sinceT = now() - 7 * M.DAY;
+    let mostImproved = null, bestDelta = 0.05; // ignore noise; only report a real improvement
+    let weakest = null, weakestPct = 101;
+    C.concepts.filter(c => !c.planned).forEach(c => {
+      const h = histOf("c:" + c.id);
+      const touchedThisWeek = h.some(a => a.t >= sinceT);
+      if (!touchedThisWeek) return;
+      const cur = masteryOf("c:" + c.id);
+      const past = M.computeMastery(h.filter(a => a.t <= sinceT), sinceT);
+      const delta = cur - past;
+      if (delta > bestDelta) { bestDelta = delta; mostImproved = { c, from: Math.round(past * 100), to: Math.round(cur * 100) }; }
+      if (cur * 100 < weakestPct) { weakestPct = cur * 100; weakest = c; }
+    });
+    return { minutes: Math.round(sum("seconds") / 60), wordsReviewed: sum("reviewDone"), lessonsDone: sum("lessonsDone"), sentencesSpoken: sum("spokenDone"), conversationsDone: sum("convoDone"), mostImproved, weakest, hasActivity: week.some(d => d.seconds > 0) };
+  }
+
+  function weeklyStatsHtml() {
+    const w = weeklyStats();
+    if (!w.hasActivity) return "";
+    return '<h2 class="sec-title">השבוע שלך 📅</h2><div class="week-card">' +
+      '<div class="week-grid">' +
+      '<div><b>' + w.minutes + "</b><span>דקות למידה</span></div>" +
+      '<div><b>' + w.wordsReviewed + "</b><span>מילים חזרו לזיכרון</span></div>" +
+      '<div><b>' + w.lessonsDone + "</b><span>שיעורים הושלמו</span></div>" +
+      '<div><b>' + w.sentencesSpoken + "</b><span>משפטים שאמרת בקול</span></div>" +
+      '<div><b>' + w.conversationsDone + "</b><span>שיחות</span></div>" +
+      "</div>" +
+      (w.mostImproved ? '<p class="week-line good">📈 הכי השתפרת ב-<b>' + rich(w.mostImproved.c.title, { noAudio: true }) + "</b> (" + w.mostImproved.from + "% ← " + w.mostImproved.to + "%)</p>" : "") +
+      (w.weakest ? '<p class="week-line">💡 כדאי לחזק: <button class="link-btn" data-practice="' + w.weakest.id + '">' + rich(w.weakest.title, { noAudio: true }) + "</button></p>" : "") +
+      "</div>";
+  }
+
   /** "Mastery Map": per-concept mastery for concepts the learner has actually attempted, weakest first (most actionable). */
   function masteryMapHtml() {
     const rows = AD.conceptMasterySnapshot(C.concepts.filter(c => !c.planned), cid => masteryOf("c:" + cid))
@@ -1543,6 +1588,7 @@
       '<div class="cefr-card"><div class="cefr-label">הרמה שלך עכשיו</div><div class="cefr-level" dir="ltr">' + LEVEL_NAME[lv] + "</div>" + levelRows + "</div>" +
       '<div class="stats-grid"><div><b>' + state.streak + "</b><span>ימי רצף 🔥</span></div><div><b>" + timeStr + "</b><span>זמן למידה ⏱️</span></div><div><b>" + words + "</b><span>מילים שלמדת 📚</span></div><div><b>" + Object.values(state.conversations).reduce((s, c) => s + (c.runs || 0), 0) + "</b><span>שיחות 💬</span></div></div>" +
       '<p class="hint-line">«מילים שלמדת» = מילים שענית עליהן נכון כמה פעמים, גם בכתיבה (מתוך ' + seenWords + " שפגשת).</p>" +
+      weeklyStatsHtml() +
       '<h2 class="sec-title">מיומנויות</h2><div class="skills">' + skills.map(k => '<div class="skill-row"><span class="skill-name">' + SKILL_NAME[k.s] + '</span><span class="progress-bar-outer" role="img" aria-label="' + SKILL_NAME[k.s] + " " + k.p + '%"><span class="progress-bar-inner" style="width:' + k.p + '%"></span></span><span class="skill-val">' + (k.n ? k.p + "% · " + skillWord(k.p) : "עוד לא תרגלת") + "</span></div>").join("") + "</div>" +
       '<p class="hint-line">כל מיומנות נמדדת בנפרד: תשובות אחרונות שוקלות יותר, כתיבה ודיבור שוקלים יותר מבחירה מרשימה, ומה שלא חזרת עליו מזמן יורד קצת.</p>' +
       masteryMapHtml() +
