@@ -214,7 +214,7 @@
         case "say":
           return Object.assign(base, { prompt: "{" + raw.say + "}", promptLang: "en", audio: raw.say, answer: raw.say, accept: [raw.say].concat(accept), vocab: vocabTags([raw.say], ctx.pool) });
         case "match":
-          return Object.assign(base, { pairs: raw.match, vocab: vocabTags(raw.match.map(p => p[0]), ctx.pool), skills: ["vocabulary"], why: raw.why ? (hasHebrew(raw.why.replace(/\{[^}]*\}/g, "")) ? raw.why : "הזוגות הנכונים: " + raw.why) : "כדאי לחזור על הזוגות: " + raw.match.map(p => "{" + p[0] + "} = " + p[1]).join(", ") });
+          return Object.assign(base, { pairs: raw.match, title: raw.title || null, vocab: vocabTags(raw.match.map(p => p[0]), ctx.pool), skills: ["vocabulary"], why: raw.why ? (hasHebrew(raw.why.replace(/\{[^}]*\}/g, "")) ? raw.why : "הזוגות הנכונים: " + raw.why) : "כדאי לחזור על הזוגות: " + raw.match.map(p => "{" + p[0] + "} = " + p[1]).join(", ") });
       }
       throw new Error("Unhandled kind " + kind);
     }

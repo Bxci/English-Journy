@@ -1108,7 +1108,7 @@
     },
 
     match(ex) {
-      lessonBody.innerHTML = header(ex, "הקישי על מילה באנגלית ואז על התרגום שלה") + '<div class="match-grid"></div>';
+      lessonBody.innerHTML = header(ex, ex.title || "הקישי על מילה באנגלית ואז על התרגום שלה") + '<div class="match-grid"></div>';
       const grid = lessonBody.querySelector(".match-grid");
       const en = engine.shuffle(ex.pairs.map(p => ({ text: p[0], key: p[0], type: "en" })));
       const he = engine.shuffle(ex.pairs.map(p => ({ text: p[1], key: p[0], type: "he" })));
