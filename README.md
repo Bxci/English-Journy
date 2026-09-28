@@ -257,13 +257,16 @@ The validator checks unique ids; valid level/title/objective; prerequisites and 
 
 | Not implemented | Why | What it would take |
 |---|---|---|
-| Cross-device sync, accounts, backup | No backend, database or auth exists here; progress is `localStorage` in one browser and is lost if site data is cleared | A small API + DB (e.g. a `users` + `progress` document per user) and auth; the v2 state object is already a single serializable document to sync |
-| Real AI conversation / free-text chat | No LLM API key is available, and a key embedded in frontend code would leak | A server-side proxy holding the key, calling a model with a system prompt constrained to the learner's unlocked vocabulary/grammar (which this curriculum already encodes per lesson), plus the same post-conversation review |
-| Pronunciation / accent scoring | Browser speech recognition only returns text | A pronunciation-assessment service (server-side) |
+| Automatic cross-device sync, accounts | No backend, database or auth exists here — deliberately (see §16). Manual backup exists instead: Settings → "ייצוא / ייבוא התקדמות" (§17) | A small API + DB and auth; the state object is already a single serializable document to sync |
+| Real AI conversation / free-text chat | No LLM API key is available, and a key embedded in frontend code would leak. Conversations use a deterministic branching-dialogue engine instead (§8) | A server-side proxy holding the key, calling a model constrained to the learner's unlocked vocabulary/grammar, plus the same post-conversation review |
+| Pronunciation / accent scoring | Browser speech recognition only returns text, not phoneme-level audio analysis — the UI is honest about this (§9) | A pronunciation-assessment service (server-side) |
 | Guaranteed speech recognition | Browser-dependent (not Firefox; Chrome needs network) | Server-side STT |
+| Real-world "missions" (task-goal practice, e.g. "order a coffee" evaluated on communication success rather than exact wording) | Would need a new content type + a much looser evaluator than the current exact-choice conversation engine; a real, scoped feature, not started | New `curriculum/missions.js` content, a goal-completion evaluator, dedicated UI |
+| Diagnostic placement test / richer onboarding | The onboarding already has a lightweight self-assessed level pick (§10); a short adaptive quiz that places the learner precisely was not built | A small item bank per level + a stopping rule (stop once confident), reusing the Mastery Engine's confidence math |
+| Weekly progress email/summary screen, achievement badges beyond the existing set, PWA installability audit, a Playwright/E2E suite | Scoped out of this pass — real work, not started | Each is a self-contained addition; none require new infrastructure |
 | Deployment | None exists in this environment | Any static host works as-is |
 
-**Highest-value next milestone if infrastructure becomes available:** a tiny backend with auth + a synced progress document (so the learner can't lose progress and can switch devices), then a server-side, level-constrained LLM conversation partner that reuses this curriculum's per-lesson vocabulary/grammar as its guardrails.
+**Highest-value next milestone if infrastructure becomes available:** a server-side, level-constrained LLM conversation partner that reuses this curriculum's per-lesson vocabulary/grammar as its guardrails — the one thing on this list that's structurally impossible to do well without a backend.
 
 ## 15. Pre-rendered audio (real human voice instead of browser TTS)
 
@@ -281,3 +284,22 @@ python scripts/generate-audio.py
 This is safe to re-run — it skips any clip that already exists, so only new/changed text gets synthesized. The voice model (`scripts/audio-gen/*.onnx`, ~60MB) is gitignored — only the generated `audio/clips/*.mp3` + `audio/manifest.json` are committed, so nobody needs Piper installed just to run the app.
 
 The hash (FNV-1a 32-bit) is implemented identically in `scripts/generate-audio.py` (Python) and `script.js` (`fnv1a()`) so both sides agree on filenames without shipping the text list itself to the browser.
+
+## 16. Adaptive Engine & Mastery Map (`engine/adaptive.js`)
+
+This is an explainability/ranking layer on top of the engines in §5–§7, **not** a replacement for them — it calls into the existing Mastery Engine and mistake memory rather than keeping a second copy of that logic.
+
+- **`rankRemediation(candidates, now)`** — when several concepts are due for remediation (§7), decides which one to surface first. Previously this was insertion order into `state.remediation`; now it's ranked by a weighted score of *how weak* (low mastery) and *how recent* (mistakes in the last week weigh more than old ones) the concept is. Used by `dueRemediation()` in `script.js`, which the home screen's daily plan and the "נושאים לחיזוק" chips already read from — so this was a drop-in upgrade, no new UI needed.
+- **`explainChunk(kind, ctx)`** — for every item in the day's plan (review / new lesson / practice / conversation), returns Hebrew reason strings ("3 טעויות שנרשמו לאחרונה", "מאסטרי נוכחי: 42%", …). **Never shown to the learner** — the existing one-line friendly `sub` text on each plan item stays as-is, deliberately, per the project's beginner-first principle (a learner with almost no English shouldn't see "mastery score" language). This exists purely for the developer inspector below.
+- **`conceptMasterySnapshot(concepts, masteryOf)`** — per-concept mastery (0–100%) + a Hebrew label (בהתחלה / מתפתח / בלמידה / טוב / חזק / שלטת מצוין), reusing `computeMastery()` — no parallel scoring system.
+
+**Mastery Map**: the Progress screen (`goProgress()`) now shows a "מפת הידע שלי" section listing concepts the learner has actually attempted (not all 67 — an untouched list would just be noise for a beginner), weakest first, each tappable to jump straight into targeted practice on that concept.
+
+**Developer inspector**: `window.__EJ_APP__.adaptiveDebug()` in the browser console returns the current day's plan with its reasons, the full ranked remediation queue, and the full concept mastery snapshot — for answering "why did it pick this?" during development. It is not linked from any learner-facing screen.
+
+## 17. Export / Import (local backup)
+
+Since there's intentionally no account system, Settings has "ייצוא התקדמות לקובץ" / "ייבוא התקדמות מקובץ" for manual backup and moving progress to another device:
+
+- **Export** serializes `{ format: "english-journey-backup", backupVersion: 1, exportedAt, state }` to a downloaded `.json` file (via `Blob` + a temporary `<a download>`, no server involved).
+- **Import** reads the file with `FileReader`, `JSON.parse`s it (a parse failure shows a friendly Hebrew error, never a crash), checks the parsed value has the expected shape, runs it through the same `mergeWithDefaults()` used for `localStorage` on every boot (so an old or partial backup still loads safely), shows a preview (lessons completed / streak / minutes / export date) in the existing in-app confirm dialog, and only replaces the current state if the learner confirms. Imported data is only ever used as a plain object — it is never `eval`'d or rendered as HTML, so a malformed or hostile file can't execute anything.

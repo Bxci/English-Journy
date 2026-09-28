@@ -325,6 +325,12 @@ bdi.en, .en{ unicode-bidi: isolate; direction: ltr; font-weight:700; }
 .skill-row{ display:grid; grid-template-columns: 90px 1fr; gap: 4px 10px; align-items:center; }
 .skill-name{ font-weight: 700; font-size: 14px; }
 .skill-val{ grid-column: 2; font-size: 12px; color: var(--ink-soft); }
+.mastery-map{ display:flex; flex-direction:column; gap: 8px; }
+.mastery-row{ display:grid; grid-template-columns: 1fr; gap: 4px; text-align: right; background: var(--card); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow-sm); transition: transform .12s ease, box-shadow .15s ease; }
+.mastery-row:hover{ box-shadow: var(--shadow); }
+.mastery-row:active{ transform: scale(.99); }
+.mastery-name{ font-weight: 700; font-size: 14px; }
+.mastery-val{ font-size: 12px; color: var(--ink-soft); }
 .rem-list, .badges{ display:flex; flex-wrap: wrap; gap: 8px; }
 .badge{ background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 13px; opacity: .45; display:inline-flex; gap: 6px; align-items:center; }
 .badge.on{ opacity: 1; box-shadow: var(--shadow); }

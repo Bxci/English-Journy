@@ -9,7 +9,7 @@
   const articleById = {}; ARTICLES.forEach(a => { articleById[a.id] = a; });
   const vocabById = {}; (C.vocabulary || []).forEach(v => { vocabById[v.id] = v; });
   const EJ = window.EJ;
-  const M = EJ.mastery, SRS = EJ.srs, UN = EJ.unlock, MI = EJ.mistakes, N = EJ.normalize;
+  const M = EJ.mastery, SRS = EJ.srs, UN = EJ.unlock, MI = EJ.mistakes, N = EJ.normalize, AD = EJ.adaptive;
   const CFG = M.CONFIG;
   const engine = EJ.exercises.createEngine(C);
   const index = UN.buildIndex(C);
@@ -535,7 +535,16 @@
      Today (home)
      ============================================================ */
   function dueKeys(limit) { return SRS.buildQueue(state.srs, now(), limit); }
-  function dueRemediation() { return Object.keys(state.remediation).filter(c => state.remediation[c].due <= now() && conceptById[c]); }
+  /** Concepts due for remediation, ranked by weakness (lowest mastery + most recent/frequent mistakes first). */
+  function dueRemediation() {
+    const t = now();
+    const due = Object.keys(state.remediation).filter(c => state.remediation[c].due <= t && conceptById[c]);
+    const candidates = due.map(id => {
+      const mrec = state.mistakes[id] || {};
+      return { id, masteryPct: masteryOf("c:" + id) * 100, mistakeCount: MI.recentMistakes(mrec, t), lastMistakeAt: (mrec.times || []).length ? mrec.times[mrec.times.length - 1] : null };
+    });
+    return AD.rankRemediation(candidates, t).map(c => c.id);
+  }
   function availableConvos() { return C.conversations.filter(s => s.requires.every(r => UN.isSatisfied(r, state))); }
   function goalFlavor() {
     const g = LEARNING_GOALS.filter(x => (state.onboarding.goals || []).includes(x.id));
@@ -1366,6 +1375,58 @@
      ============================================================ */
   function skillWord(p) { return p >= 80 ? "חזקה" : p >= 50 ? "מתקדמת" : p >= 20 ? "בדרך" : "בהתחלה"; }
 
+  const BACKUP_FORMAT = "english-journey-backup";
+  const BACKUP_VERSION = 1;
+
+  function exportProgress() {
+    const payload = { format: BACKUP_FORMAT, backupVersion: BACKUP_VERSION, exportedAt: new Date().toISOString(), state };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = todayStr();
+    a.href = url;
+    a.download = "english-journey-backup-" + (state.userName ? state.userName.replace(/[^\w\-]+/g, "") + "-" : "") + date + ".json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast("הקובץ ירד למחשב/לטלפון שלך 💾", 3000);
+  }
+
+  function importProgress(file) {
+    const reader = new FileReader();
+    reader.onerror = () => toast("⚠️ לא הצלחנו לקרוא את הקובץ.", 4000);
+    reader.onload = () => {
+      let parsed;
+      try { parsed = JSON.parse(String(reader.result)); } catch (e) { toast("⚠️ הקובץ הזה לא תקין (לא JSON תקין).", 4000); return; }
+      if (!parsed || typeof parsed !== "object" || !isObj(parsed.state)) { toast("⚠️ הקובץ הזה לא נראה כמו גיבוי של המסע לאנגלית.", 4500); return; }
+      const incoming = mergeWithDefaults(parsed.state);
+      const doneCount = Object.values(incoming.lessons || {}).filter(l => l && l.completed).length;
+      const preview = "בגיבוי: " + doneCount + " שיעורים הושלמו, " + (incoming.streak || 0) + " ימי רצף, " + Math.round((incoming.time.totalSeconds || 0) / 60) + " דקות למידה." +
+        (parsed.exportedAt ? " (יוצא ב-" + new Date(parsed.exportedAt).toLocaleDateString("he-IL") + ")" : "");
+      askConfirm("לייבא את הגיבוי הזה? " + preview + " ההתקדמות הנוכחית במכשיר הזה תוחלף.", "כן, לייבא ולהחליף", "ביטול").then(ok => {
+        if (!ok) return;
+        state = incoming;
+        saveState();
+        toast("ההתקדמות יובאה בהצלחה 🎉", 3000);
+        goProgress();
+      });
+    };
+    reader.readAsText(file);
+  }
+
+  /** "Mastery Map": per-concept mastery for concepts the learner has actually attempted, weakest first (most actionable). */
+  function masteryMapHtml() {
+    const rows = AD.conceptMasterySnapshot(C.concepts.filter(c => !c.planned), cid => masteryOf("c:" + cid))
+      .filter(r => histOf("c:" + r.id).length > 0)
+      .sort((a, b) => a.masteryPct - b.masteryPct)
+      .slice(0, 15);
+    if (!rows.length) return "";
+    return '<h2 class="sec-title">מפת הידע שלי 🗺️</h2><div class="mastery-map">' + rows.map(r =>
+      '<button class="mastery-row" data-practice="' + r.id + '"><span class="mastery-name">' + rich(conceptById[r.id].title, { noAudio: true }) + '</span><span class="progress-bar-outer" role="img" aria-label="' + r.masteryPct + '%"><span class="progress-bar-inner" style="width:' + r.masteryPct + '%"></span></span><span class="mastery-val">' + r.masteryPct + "% · " + r.label + "</span></button>"
+    ).join("") + "</div><p class=\"hint-line\">מוצגים הנושאים שתרגלת, מהחלש ביותר. לחיצה על נושא פותחת תרגול ממוקד עליו.</p>";
+  }
+
   function goProgress() {
     const lv = currentLevel();
     const skills = M.SKILLS.map(s => ({ s, p: M.displayPercent(M.computeMastery((state.skills[s] || {}).h, now())), n: ((state.skills[s] || {}).h || []).length }));
@@ -1382,6 +1443,7 @@
       '<p class="hint-line">«מילים שלמדת» = מילים שענית עליהן נכון כמה פעמים, גם בכתיבה (מתוך ' + seenWords + " שפגשת).</p>" +
       '<h2 class="sec-title">מיומנויות</h2><div class="skills">' + skills.map(k => '<div class="skill-row"><span class="skill-name">' + SKILL_NAME[k.s] + '</span><span class="progress-bar-outer" role="img" aria-label="' + SKILL_NAME[k.s] + " " + k.p + '%"><span class="progress-bar-inner" style="width:' + k.p + '%"></span></span><span class="skill-val">' + (k.n ? k.p + "% · " + skillWord(k.p) : "עוד לא תרגלת") + "</span></div>").join("") + "</div>" +
       '<p class="hint-line">כל מיומנות נמדדת בנפרד: תשובות אחרונות שוקלות יותר, כתיבה ודיבור שוקלים יותר מבחירה מרשימה, ומה שלא חזרת עליו מזמן יורד קצת.</p>' +
+      masteryMapHtml() +
       (Object.keys(state.remediation).length ? '<h2 class="sec-title">נושאים לחיזוק</h2><div class="rem-list">' + Object.keys(state.remediation).filter(c => conceptById[c]).map(c => '<button class="chip" data-rem="' + c + '">🎯 ' + rich(conceptById[c].title, { noAudio: true }) + "</button>").join("") + "</div>" : "") +
       (certs.length ? '<h2 class="sec-title">תעודות</h2><div class="rem-list">' + certs.map(c => '<button class="chip" data-cert="' + c + '">🏆 ' + LEVEL_NAME[c] + "</button>").join("") + "</div>" : "") +
       '<h2 class="sec-title">עיטורים</h2><div class="badges">' + BADGES.map(b => '<span class="badge' + (state.badgesUnlocked.includes(b.id) ? " on" : "") + '" title="' + esc(b.name) + '"><span aria-hidden="true">' + b.icon + "</span>" + esc(b.name) + "</span>").join("") + "</div>" +
@@ -1390,12 +1452,18 @@
       '<label class="set-row"><span>זמן יומי</span><select id="set-min">' + [10, 20, 30, 45].map(m => '<option value="' + m + '"' + (m === state.onboarding.dailyMinutes ? " selected" : "") + ">" + m + " דקות</option>").join("") + "</select></label>" +
       voiceRowHtml() +
       '<button class="btn btn-ghost" id="set-onb">לעדכן רמה / מטרות</button>' +
+      '<button class="btn btn-ghost" id="set-export">ייצוא התקדמות לקובץ 💾</button>' +
+      '<button class="btn btn-ghost" id="set-import">ייבוא התקדמות מקובץ 📂</button>' +
+      '<input type="file" id="set-import-file" accept="application/json" class="hidden">' +
       '<button class="btn btn-ghost danger" id="set-reset">איפוס כל ההתקדמות</button>' +
-      '<p class="hint-line">ההתקדמות נשמרת רק בדפדפן הזה (אין חשבון או שרת), ולכן לא עוברת בין מכשירים.</p></div>';
+      '<p class="hint-line">ההתקדמות נשמרת בדפדפן הזה (אין חשבון או שרת). אפשר לגבות לקובץ ולהעביר למכשיר אחר עם "ייצוא / ייבוא".</p></div>';
     $("set-slow").addEventListener("change", e => { state.settings.slowAudio = e.target.checked; saveState(); });
     $("set-min").addEventListener("change", e => { state.onboarding.dailyMinutes = Number(e.target.value); saveState(); });
     if ($("set-voice")) $("set-voice").addEventListener("change", e => { state.settings.voiceURI = e.target.value || null; Audio.voice = Audio.pickVoice(); saveState(); Audio.speak("Hello! This is my voice."); });
     $("set-onb").addEventListener("click", startOnboarding);
+    $("set-export").addEventListener("click", exportProgress);
+    $("set-import").addEventListener("click", () => $("set-import-file").click());
+    $("set-import-file").addEventListener("change", e => { const f = e.target.files[0]; if (f) importProgress(f); e.target.value = ""; });
     $("set-reset").addEventListener("click", () => {
       askConfirm("לאפס את כל ההתקדמות? אי אפשר לבטל.", "כן, לאפס", "ביטול").then(ok => {
         if (!ok) return;
@@ -1403,6 +1471,7 @@
       });
     });
     $("progress-body").querySelectorAll("[data-rem]").forEach(b => b.addEventListener("click", () => startRemediation(b.dataset.rem)));
+    $("progress-body").querySelectorAll("[data-practice]").forEach(b => b.addEventListener("click", () => startRemediation(b.dataset.practice)));
     $("progress-body").querySelectorAll("[data-cert]").forEach(b => b.addEventListener("click", () => showCertificate(b.dataset.cert)));
     showScreen("screen-progress");
   }
@@ -1413,5 +1482,29 @@
   initWelcomeScreen();
   showScreen("screen-welcome");
   // debugging aid (inspect from the browser console)
-  window.__EJ_APP__ = { get state() { return state; }, get current() { return current; }, get session() { return session; }, lessonMastery, nextLesson, goHome, goMap, goProgress, goConvos, startLesson, startReview, startConversation };
+  /** Dev-only: explains the adaptive engine's current picks. Never surfaced in learner-facing UI. */
+  function adaptiveDebug() {
+    const t = now();
+    const due = SRS.countDue(state.srs, t);
+    const rem = dueRemediation();
+    const next = nextLesson();
+    const convo = recommendedConvo();
+    const plan = buildPlan();
+    const remCandidates = rem.map(id => {
+      const mrec = state.mistakes[id] || {};
+      return { id, masteryPct: masteryOf("c:" + id) * 100, mistakeCount: MI.recentMistakes(mrec, t), lastMistakeAt: (mrec.times || []).length ? mrec.times[mrec.times.length - 1] : null };
+    });
+    return {
+      plan: plan.map(ch => ({ kind: ch.kind, minutes: ch.minutes, title: ch.title, sub: ch.sub, reasons: AD.explainChunk(ch.kind, {
+        dueCount: due, lessonTitle: next && next.title, remediationConcept: rem[0] || null,
+        remediationReasons: rem[0] ? AD.rankRemediation(remCandidates, t)[0].reasons : [],
+        matchesGoal: convo && convo.goals.some(g => (state.onboarding.goals || []).includes(g)),
+        runsBefore: convo && (state.conversations[convo.id] || {}).runs || 0,
+      }) })),
+      remediationRanked: AD.rankRemediation(remCandidates, t),
+      conceptMastery: AD.conceptMasterySnapshot(C.concepts.filter(c => !c.planned), cid => masteryOf("c:" + cid)),
+    };
+  }
+
+  window.__EJ_APP__ = { get state() { return state; }, get current() { return current; }, get session() { return session; }, lessonMastery, nextLesson, goHome, goMap, goProgress, goConvos, startLesson, startReview, startConversation, adaptiveDebug };
 })();

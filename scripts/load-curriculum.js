@@ -19,6 +19,7 @@ const ENGINE_FILES = [
   "engine/srs.js",
   "engine/unlock.js",
   "engine/mistakes.js",
+  "engine/adaptive.js",
   "engine/exercises.js",
 ];
 
