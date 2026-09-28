@@ -91,3 +91,33 @@ test("matchSpeech returns matched/extra alongside missing, for structured speaki
   assert.deepEqual(partial.missing, ["is", "dana"]);
   assert.deepEqual(partial.extra, []);
 });
+
+test("pickBestMatch (Conversation Engine free-text/speech reply matching)", () => {
+  const choices = [
+    { en: "Hi Tom! My name is Dana.", kind: "good1" },
+    { en: "Hello! Nice to meet you. I'm Dana.", kind: "good2" },
+    { en: "Good night, Tom.", bad: true, kind: "badGreeting" },
+    { en: "I am fine.", bad: true, kind: "badFine" },
+  ];
+
+  assert.equal(N.pickBestMatch("Hi Tom, my name is Dana", choices).kind, "good1", "close paraphrase of a real choice matches");
+  assert.equal(N.pickBestMatch("Good night, Tom", choices).kind, "badGreeting", "a clear match to a bad choice is still returned (caller shows why)");
+  assert.equal(
+    N.pickBestMatch("Hi, I am Dana", choices),
+    null,
+    "short bad choice 'I am fine.' would accidentally word-overlap on 'i'/'am' — must NOT be confidently picked over an unrelated intro sentence"
+  );
+  assert.equal(N.pickBestMatch("asdkj qwoeiu nonsense", choices), null, "no reasonable match at all -> null");
+});
+
+test("pickBestMatch: an exact short answer still matches (no false negative from the short-sentence safeguard)", () => {
+  const choices = [{ en: "I am fine.", kind: "fine" }, { en: "Not so good.", kind: "notgood" }];
+  assert.equal(N.pickBestMatch("I am fine", choices).kind, "fine");
+  assert.equal(N.pickBestMatch("I'm fine", choices).kind, "fine", "contraction still normalizes to an exact match");
+});
+
+test("pickBestMatch supports a custom textOf accessor", () => {
+  const items = [{ id: 1, label: "Coffee, please." }, { id: 2, label: "Tea, please." }];
+  const got = N.pickBestMatch("Coffee, please", items, x => x.label);
+  assert.equal(got.id, 1);
+});

@@ -180,5 +180,36 @@
     return checkTyped(chunks.join(" "), accepted, { noTypos: true, strictForm: true });
   }
 
-  return { basic, normalizeAnswer, expandContractions, numberToWords, levenshtein, isSpellingSlip, checkTyped, matchSpeech, checkChunks };
+  /**
+   * pickBestMatch(text, items, textOf) — for the Conversation Engine's free-text/speech reply
+   * matching: which of several candidate sentences (a scenario node's choices) did the learner
+   * most likely mean?
+   *
+   * A plain word-overlap ratio (matchSpeech's `score`) is easy to satisfy by accident against a
+   * SHORT candidate: "Hi, I am Dana" shares 2 of the 3 words in "I am fine." ("i", "am") — a
+   * coincidental 67% despite being unrelated sentences. So candidates with <= 4 expected words
+   * require a near-exact match (>= 0.99); longer ones keep the lenient 0.6 threshold used
+   * elsewhere for speech. On top of that, the winner must clearly beat the runner-up (>= 0.15
+   * score gap) — an ambiguous call returns null (the caller should ask the learner to rephrase)
+   * rather than confidently picking the wrong candidate.
+   *
+   * items: any array; textOf(item) -> the English sentence to compare against (default: item.en).
+   * Returns the winning item, or null if nothing matched clearly enough.
+   */
+  function pickBestMatch(text, items, textOf) {
+    const get = textOf || (x => x.en);
+    const scored = items.map(item => {
+      const r = matchSpeech([text], [get(item)]);
+      const wordCount = r.matched.length + r.missing.length;
+      const threshold = wordCount <= 4 ? 0.99 : 0.6;
+      return { item, score: r.score, ok: r.score >= threshold };
+    }).sort((a, b) => b.score - a.score);
+    const top = scored.find(s => s.ok);
+    if (!top) return null;
+    const second = scored.find(s => s !== top);
+    if (second && top.score - second.score < 0.15) return null;
+    return top.item;
+  }
+
+  return { basic, normalizeAnswer, expandContractions, numberToWords, levenshtein, isSpellingSlip, checkTyped, matchSpeech, checkChunks, pickBestMatch };
 });

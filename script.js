@@ -1281,6 +1281,9 @@
     d.scrollIntoView({ block: "end", behavior: "smooth" });
   }
 
+  /** Match free-text (typed or spoken) against a conversation node's choices — see engine/normalize.js pickBestMatch(). */
+  function pickBestChoice(text, choices) { return N.pickBestMatch(text, choices); }
+
   function chatNode() {
     const n = chat.s.nodes[chat.node];
     chatBubble("npc", n.npc, n.he);
@@ -1302,16 +1305,33 @@
         mic.textContent = "מקשיבה... 👂";
         STT.listen({
           onResult: alts => {
-            let best = null, bestScore = 0;
-            n.choices.forEach(c => { const r = N.matchSpeech(alts, [c.en]); if (r.score > bestScore) { best = c; bestScore = r.score; } });
-            if (best && bestScore >= 0.6) { const btn = Array.from(box.querySelectorAll(".option")).find(x => x.textContent === best.en); chooseReply(best, btn, n); }
-            else { mic.textContent = "🎙️ לא זיהיתי — נסי שוב או בחרי"; }
+            const best = pickBestChoice(alts[0], n.choices);
+            if (best) { const btn = Array.from(box.querySelectorAll(".option")).find(x => x.textContent === best.en); chooseReply(best, btn, n); }
+            else { mic.textContent = "🎙️ לא זיהיתי בבירור — נסי שוב או בחרי"; }
           },
           onError: code => { mic.textContent = "🎙️ " + (STT_ERRORS[code] || "נסי שוב"); },
         });
       });
       box.appendChild(mic);
     }
+    const typeRow = document.createElement("div");
+    typeRow.className = "chat-type-row";
+    typeRow.innerHTML = '<label class="sr-only" for="chat-type-input">או כתבי תשובה בעצמך</label>' +
+      '<input id="chat-type-input" class="text-input" type="text" dir="ltr" lang="en" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="או כתבי תשובה באנגלית בעצמך...">' +
+      '<button type="button" class="btn btn-ghost small" id="chat-type-check">בדיקה</button>';
+    box.appendChild(typeRow);
+    const submitTyped = () => {
+      const typed = $("chat-type-input").value.trim();
+      if (!typed) return;
+      const best = pickBestChoice(typed, n.choices);
+      if (best) { chooseReply(best, null, n); return; }
+      const fb = $("chat-feedback");
+      const goodExample = (n.choices.find(x => !x.bad) || {}).en;
+      fb.className = "feedback-banner bad";
+      fb.innerHTML = '<div class="feedback-icon" aria-hidden="true">🤔</div><div class="feedback-text"><div class="feedback-title">לא הצלחתי להבין את זה בבירור</div><div class="feedback-sub">נסי לנסח אחרת, או השראה: ' + enSpan(goodExample) + "</div></div>";
+    };
+    $("chat-type-check").addEventListener("click", submitTyped);
+    $("chat-type-input").addEventListener("keydown", e => { if (e.key === "Enter") submitTyped(); });
   }
 
   function chooseReply(c, btn, n) {

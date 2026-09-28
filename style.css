@@ -293,6 +293,8 @@ bdi.en, .en{ unicode-bidi: isolate; direction: ltr; font-weight:700; }
 .bubble-he summary{ cursor: pointer; min-height: 32px; display: flex; align-items: center; }
 .chat-footer{ position: sticky; bottom: 0; background: var(--bg); padding: 10px 16px 18px; }
 .chat-choices{ display:flex; flex-direction:column; gap: 8px; }
+.chat-type-row{ display:flex; gap: 8px; margin-top: 4px; }
+.chat-type-row .text-input{ margin-bottom: 0; flex: 1; text-align: left; }
 .convo-review{ list-style:none; padding:0; margin: 0 0 16px; display:flex; flex-direction:column; gap: 10px; text-align: right; }
 .convo-review li{ background: var(--bg); border-radius: 14px; padding: 12px; font-size: 14px; line-height: 1.8; }
 .concept-link{ font-size: 12px; color: var(--ink-soft); }
