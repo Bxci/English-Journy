@@ -1,214 +1,71 @@
 /*
-  לוח תוכן הקורס — "המסע לאנגלית"
-  כל יחידה (unit) מכילה אוצר מילים/משפטים, ומהם נבנים תרגילים במגוון סוגים
-  ע"י המנוע ב-script.js (בחירה, האזנה, התאמה, הקלדה).
+  lessons-data.js — motivational content and app-level data (not the curriculum itself).
+  The curriculum lives in curriculum/*.js. This file keeps: encouragement messages, gifts, badges,
+  the optional short placement check, onboarding goal flavor texts, and the mapping of the old
+  (v1) 10-unit course onto the new lessons, used to migrate existing learners' progress.
 */
-
-const COURSE_UNITS = [
-  {
-    id: "u1",
-    icon: "👋",
-    title: "יחידה 1: ברכות והיכרות",
-    subtitle: "המילים והביטויים הראשונים שכל אחד צריך",
-    vocab: [
-      { en: "Hello",        he: "שלום" },
-      { en: "Goodbye",      he: "להתראות" },
-      { en: "Please",       he: "בבקשה" },
-      { en: "Thank you",    he: "תודה" },
-      { en: "Yes",          he: "כן" },
-      { en: "No",           he: "לא" },
-      { en: "My name is",   he: "קוראים לי" },
-      { en: "Nice to meet you", he: "נעים מאוד" },
-      { en: "How are you?", he: "מה שלומך?" },
-      { en: "I'm fine",     he: "אני בסדר" },
-    ],
-  },
-  {
-    id: "u2",
-    icon: "🔢",
-    title: "יחידה 2: מספרים",
-    subtitle: "לספור באנגלית מ-1 עד 10 ומעבר",
-    vocab: [
-      { en: "One", he: "אחת" },
-      { en: "Two", he: "שתיים" },
-      { en: "Three", he: "שלוש" },
-      { en: "Four", he: "ארבע" },
-      { en: "Five", he: "חמש" },
-      { en: "Six", he: "שש" },
-      { en: "Seven", he: "שבע" },
-      { en: "Eight", he: "שמונה" },
-      { en: "Nine", he: "תשע" },
-      { en: "Ten", he: "עשר" },
-    ],
-  },
-  {
-    id: "u3",
-    icon: "👨‍👩‍👧‍👦",
-    title: "יחידה 3: משפחה",
-    subtitle: "בני המשפחה באנגלית",
-    vocab: [
-      { en: "Mother", he: "אמא" },
-      { en: "Father", he: "אבא" },
-      { en: "Sister", he: "אחות" },
-      { en: "Brother", he: "אח" },
-      { en: "Son", he: "בן" },
-      { en: "Daughter", he: "בת" },
-      { en: "Grandmother", he: "סבתא" },
-      { en: "Grandfather", he: "סבא" },
-      { en: "Family", he: "משפחה" },
-      { en: "Baby", he: "תינוק" },
-    ],
-  },
-  {
-    id: "u4",
-    icon: "🍎",
-    title: "יחידה 4: אוכל ומשקאות",
-    subtitle: "מה שאוהבים לאכול ולשתות",
-    vocab: [
-      { en: "Water", he: "מים" },
-      { en: "Bread", he: "לחם" },
-      { en: "Apple", he: "תפוח" },
-      { en: "Milk", he: "חלב" },
-      { en: "Coffee", he: "קפה" },
-      { en: "Egg", he: "ביצה" },
-      { en: "Rice", he: "אורז" },
-      { en: "Chicken", he: "עוף" },
-      { en: "Vegetable", he: "ירק" },
-      { en: "Fruit", he: "פרי" },
-    ],
-  },
-  {
-    id: "u5",
-    icon: "🎨",
-    title: "יחידה 5: צבעים וצורות",
-    subtitle: "העולם מלא בצבעים - איך אומרים אותם?",
-    vocab: [
-      { en: "Red", he: "אדום" },
-      { en: "Blue", he: "כחול" },
-      { en: "Green", he: "ירוק" },
-      { en: "Yellow", he: "צהוב" },
-      { en: "Black", he: "שחור" },
-      { en: "White", he: "לבן" },
-      { en: "Orange", he: "כתום" },
-      { en: "Purple", he: "סגול" },
-      { en: "Pink", he: "ורוד" },
-      { en: "Brown", he: "חום" },
-    ],
-  },
-  {
-    id: "u6",
-    icon: "⏰",
-    title: "יחידה 6: זמן וימים",
-    subtitle: "ימות השבוע ומילות זמן",
-    vocab: [
-      { en: "Sunday", he: "ראשון" },
-      { en: "Monday", he: "שני" },
-      { en: "Tuesday", he: "שלישי" },
-      { en: "Wednesday", he: "רביעי" },
-      { en: "Thursday", he: "חמישי" },
-      { en: "Friday", he: "שישי" },
-      { en: "Saturday", he: "שבת" },
-      { en: "Today", he: "היום" },
-      { en: "Tomorrow", he: "מחר" },
-      { en: "Yesterday", he: "אתמול" },
-    ],
-  },
-  {
-    id: "u7",
-    icon: "🏠",
-    title: "יחידה 7: בבית",
-    subtitle: "חפצים וחדרים בבית",
-    vocab: [
-      { en: "House", he: "בית" },
-      { en: "Room", he: "חדר" },
-      { en: "Kitchen", he: "מטבח" },
-      { en: "Bedroom", he: "חדר שינה" },
-      { en: "Bathroom", he: "חדר אמבטיה" },
-      { en: "Door", he: "דלת" },
-      { en: "Window", he: "חלון" },
-      { en: "Table", he: "שולחן" },
-      { en: "Chair", he: "כיסא" },
-      { en: "Bed", he: "מיטה" },
-    ],
-  },
-  {
-    id: "u8",
-    icon: "😊",
-    title: "יחידה 8: תארים ורגשות",
-    subtitle: "איך מתארים דברים ומרגישים",
-    vocab: [
-      { en: "Happy", he: "שמח" },
-      { en: "Sad", he: "עצוב" },
-      { en: "Big", he: "גדול" },
-      { en: "Small", he: "קטן" },
-      { en: "Hot", he: "חם" },
-      { en: "Cold", he: "קר" },
-      { en: "Beautiful", he: "יפה" },
-      { en: "Tired", he: "עייף" },
-      { en: "Hungry", he: "רעב" },
-      { en: "Good", he: "טוב" },
-    ],
-  },
-  {
-    id: "u9",
-    icon: "🏃",
-    title: "יחידה 9: פעלים ביום-יום",
-    subtitle: "פעולות שעושים כל יום",
-    vocab: [
-      { en: "To eat", he: "לאכול" },
-      { en: "To drink", he: "לשתות" },
-      { en: "To sleep", he: "לישון" },
-      { en: "To walk", he: "ללכת" },
-      { en: "To run", he: "לרוץ" },
-      { en: "To read", he: "לקרוא" },
-      { en: "To write", he: "לכתוב" },
-      { en: "To speak", he: "לדבר" },
-      { en: "To work", he: "לעבוד" },
-      { en: "To learn", he: "ללמוד" },
-    ],
-  },
-  {
-    id: "u10",
-    icon: "✈️",
-    title: "יחידה 10: משפטים לחיי היום יום",
-    subtitle: "משפטים שימושיים לשיחה אמיתית",
-    vocab: [
-      { en: "What is your name?", he: "מה השם שלך?" },
-      { en: "Where are you from?", he: "מאיפה אתה?" },
-      { en: "How much is it?", he: "כמה זה עולה?" },
-      { en: "I don't understand", he: "אני לא מבין/ה" },
-      { en: "Can you help me?", he: "תוכל/י לעזור לי?" },
-      { en: "I would like...", he: "הייתי רוצה..." },
-      { en: "Excuse me", he: "סליחה" },
-      { en: "I'm sorry", he: "אני מצטער/ת" },
-      { en: "See you later", he: "נתראה אחר כך" },
-      { en: "Have a nice day", he: "שיהיה לך יום נעים" },
-    ],
-  },
-];
 
 // הודעות עידוד שיוצגו אחרי כל שיעור, באקראי
 const ENCOURAGEMENT_MESSAGES = [
   "כל מילה שאת לומדת היא צעד קדימה. את מדהימה! 💪",
-  "אין דבר כזה 'אני לא מסוגלת' - יש רק 'עוד לא'. תמשיכי כך!",
+  "אין דבר כזה 'אני לא מסוגלת' — יש רק 'עוד לא'. תמשיכי כך!",
   "היום את קצת יותר קרובה לדבר אנגלית בביטחון. גאה בך!",
   "ההתמדה שלך היא הכוח האמיתי. כל הכבוד על השיעור הזה!",
-  "השפה נלמדת שלב אחר שלב - ואת בדיוק בקצב הנכון.",
-  "מי שהיה אמור לפני שבוע - היה גאה בך היום.",
+  "השפה נלמדת שלב אחר שלב — ואת בדיוק בקצב הנכון.",
+  "את של לפני שבוע הייתה גאה בך היום.",
   "עוד שיעור, עוד ניצחון קטן. תמשיכי לצבור אותם!",
-  "את בונה כאן משהו ששווה המון - תמשיכי להאמין בעצמך.",
+  "את בונה כאן משהו ששווה המון — תמשיכי להאמין בעצמך.",
   "כל טעות היא רק חלק מהדרך להצלחה. יופי של עבודה!",
   "יש לך את זה. פשוט תמשיכי לפתוח את השיעור הבא.",
 ];
 
 // מתנות (אמוג'י) שנפתחות בסיום שיעור
-const GIFTS = ["🌸","🍫","🎈","🧸","🍭","🌈","💐","🎀","🍩","⭐","🎵","☕","🦄","🍓","🎨"];
+const GIFTS = ["🌸", "🍫", "🎈", "🧸", "🍭", "🌈", "💐", "🎀", "🍩", "⭐", "🎵", "☕", "🦄", "🍓", "🎨"];
 
-// עיטורים (badges) שנפתחים בציוני דרך
+// עיטורים (badges) — לפי מספר שיעורים שהושלמו באמת (לא דילוג), ולפי סיום רמה
 const BADGES = [
-  { id: "b1", unitsRequired: 1,  icon: "🥉", name: "צעד ראשון" },
-  { id: "b2", unitsRequired: 3,  icon: "🥈", name: "מתחילה בביטחון" },
-  { id: "b3", unitsRequired: 5,  icon: "🥇", name: "חצי מהדרך" },
-  { id: "b4", unitsRequired: 7,  icon: "💎", name: "דוברת מתקדמת" },
-  { id: "b5", unitsRequired: 10, icon: "👑", name: "אלופת האנגלית" },
+  { id: "b1", lessonsRequired: 1, icon: "🥉", name: "צעד ראשון" },
+  { id: "b2", lessonsRequired: 5, icon: "🥈", name: "מתחילה בביטחון" },
+  { id: "b3", lessonsRequired: 15, icon: "🥇", name: "חצי דרך ל-A1" },
+  { id: "b4", lessonsRequired: 30, icon: "💎", name: "לומדת מתמידה" },
+  { id: "b5", lessonsRequired: 50, icon: "👑", name: "אלופת האנגלית" },
+  { id: "lvl-pre-a1", level: "pre-a1", icon: "🌱", name: "סיימתי Pre-A1" },
+  { id: "lvl-a1", level: "a1", icon: "🌳", name: "סיימתי A1" },
+  { id: "lvl-a2", level: "a2", icon: "🏔️", name: "סיימתי את שיעורי A2" },
 ];
+
+// מטרות למידה — משמשות רק לטקסט מעודד ולסדר הצעת השיחות. לא משנות את סדר הקורס!
+const LEARNING_GOALS = [
+  { id: "conversation", label: "שיחות יומיומיות", icon: "💬", flavor: "כל מה שלומדים היום — ישר לשיחה אמיתית." },
+  { id: "travel", label: "טיולים", icon: "✈️", flavor: "עוד כמה מילים, והטיול הבא נהיה הרבה יותר קל." },
+  { id: "work", label: "עבודה", icon: "💼", flavor: "צעד קטן היום — ביטחון גדול בפגישה הבאה." },
+  { id: "movies", label: "סרטים וסדרות", icon: "🎬", flavor: "עוד קצת, ותתחילי לתפוס משפטים שלמים בסדרות." },
+  { id: "study", label: "לימודים", icon: "🎓", flavor: "בסיס חזק היום = קריאה קלה יותר מחר." },
+  { id: "general", label: "סתם כי בא לי", icon: "🌟", flavor: "לומדים בשביל עצמנו — וזה הכי טוב." },
+];
+
+// בדיקת רמה קצרה ואופציונלית (אפשר לדלג). level = הרמה שהשאלה בודקת.
+const PLACEMENT_TEST = [
+  { level: "pre-a1", q: "מה הפירוש של {Thank you}?", a: "תודה", o: ["בבקשה", "סליחה"] },
+  { level: "pre-a1", q: "איך כותבים 15?", a: "fifteen", o: ["fifty", "five"] },
+  { level: "pre-a1", q: "{a red car} — מה זה?", a: "מכונית אדומה", o: ["מכונית כחולה", "אוטובוס אדום"] },
+  { level: "pre-a1", q: "מה עונים ל-{How are you?}", a: "I'm fine, thanks.", o: ["My name is Dana.", "Goodbye."] },
+  { level: "a1", q: "She ___ a doctor.", a: "is", o: ["are", "am"] },
+  { level: "a1", q: "He ___ in Haifa.", a: "lives", o: ["live", "living"] },
+  { level: "a1", q: "___ you like coffee?", a: "Do", o: ["Are", "Does"] },
+  { level: "a1", q: "Yesterday I ___ to the beach.", a: "went", o: ["go", "goed"] },
+  { level: "a2", q: "The train is ___ than the bus.", a: "faster", o: ["more fast", "fastest"] },
+  { level: "a2", q: "There isn't ___ milk.", a: "any", o: ["some", "many"] },
+  { level: "a2", q: "You ___ smoke here. It's dangerous.", a: "mustn't", o: ["don't have to", "should to"] },
+];
+
+// מיפוי הקורס הישן (v1, 10 יחידות אוצר מילים) לשיעורים החדשים — לשמירת התקדמות קיימת
+const LEGACY_UNIT_MAP = {
+  u1: ["pa-greet-1", "pa-greet-2", "pa-greet-3"],
+  u2: ["pa-num-1"],
+  u3: ["pa-family"],
+  u4: ["pa-food", "pa-drinks"],
+  u5: ["pa-colors"],
+  u7: ["pa-home"],
+  u9: ["pa-actions"],
+};
