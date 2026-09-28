@@ -114,6 +114,9 @@
   /** Hebrew text with {English} segments -> HTML. English is wrapped in LTR <bdi>; tappable for audio unless noAudio. */
   function rich(text, opts) {
     opts = opts || {};
+    text = String(text == null ? "" : text);
+    // bare English runs in Hebrew titles ("you / we / they are — ...") get isolated as LTR too
+    if (!text.includes("{") && hasHebrew(text)) text = text.replace(/[A-Za-z][A-Za-z0-9'’ /.,?!+-]*[A-Za-z0-9?!.'’]|[A-Za-z]/g, m => "{" + m.trim() + "}");
     let h = esc(text).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
     h = h.replace(/\{([^}]+)\}/g, (m, en) => opts.noAudio
       ? '<bdi class="en" dir="ltr" lang="en">' + en + "</bdi>"

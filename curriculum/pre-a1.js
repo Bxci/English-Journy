@@ -196,6 +196,7 @@
       exercises: [
         { g: "emoji", v: ["man", "woman", "boy", "girl", "baby"] },
         { g: "en2he", v: ["friend", "person", "people"] },
+        { g: "he2en", v: ["teacher", "student"] },
         { g: "listen", v: ["teacher", "doctor"] },
         { g: "match", v: ["man", "woman", "friend", "student"] },
         { mc: "{woman} ← רבים?", a: "women", o: ["womans", "woman"], why: "{woman} ← {women}. תלמדי עוד על זה ב-A1." },
@@ -241,6 +242,8 @@
       exercises: [
         { g: "emoji", v: ["water", "coffee", "tea", "milk", "juice", "wine"] },
         { g: "listen", v: ["tea", "juice"] },
+        { g: "he2en", v: ["milk", "wine"] },
+        { g: "listenType", v: ["water"] },
         { g: "match", v: ["water", "coffee", "milk", "wine"] },
         { npc: "Coffee or tea?", a: "Tea, please.", o: ["Tea, sorry.", "Hello, tea."], why: "בוחרים ומוסיפים {please}." },
         { tre: "Coffee with milk, please.", a: "קפה עם חלב, בבקשה.", o: ["תה עם חלב, בבקשה.", "קפה בלי חלב, בבקשה."], why: "{coffee} = קפה, {milk} = חלב, {with} = עם." },
@@ -254,6 +257,7 @@
         { g: "en2he", v: ["bag", "cup", "watch"] },
         { g: "match", v: ["pen", "computer", "phone", "key"] },
         { g: "listen", v: ["umbrella", "computer"] },
+        { g: "listenType", v: ["key", "book"] },
         { mc: "{Where is my key?} — מה מחפשים?", a: "מפתח 🔑", o: ["טלפון 📱", "תיק 👜"], why: "{key} = מפתח." },
         { g: "type", v: ["phone", "bag", "pen"] },
         { g: "say", v: ["glasses"] },

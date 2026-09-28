@@ -22,6 +22,7 @@
         { fill: "This book is ___ than that book. (interesting)", a: "more interesting", o: ["interestinger", "most interesting"], why: "תואר ארוך ← {more interesting}." },
         { fill: "Today is ___ than yesterday. (bad)", a: "worse", o: ["badder", "more bad"], why: "{bad} ← {worse}." },
         { fill: "My sister is taller ___ me.", a: "than", o: ["that", "then"], why: "השוואה ← {than}." },
+        { fill: "My phone is ___ than your phone. (new)", a: ["newer"], why: "{new} ← {newer}.", k: "הקלידי את צורת ההשוואה" },
         { err: "My car is more bigger than your car.", a: "My car is bigger than your car.", o: ["My car is biger than your car."], why: "רק {-er}, בלי {more}." },
         { build: "English is easier than Chinese.", he: "אנגלית קלה יותר מסינית.", why: "{easy} ← {easier} + {than}." },
         { tr: "הרכבת מהירה יותר מהאוטובוס.", a: ["The train is faster than the bus."], why: "{faster than}." },
