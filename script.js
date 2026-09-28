@@ -46,7 +46,7 @@
       certificates: {},   // level -> date
       daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0 },
       time: { totalSeconds: 0 },
-      settings: { slowAudio: false },
+      settings: { slowAudio: false, voiceURI: null },
       legacy: null,
     };
   }
@@ -145,24 +145,40 @@
   }
   function plainOf(text) { return String(text || "").replace(/\*\*/g, "").replace(/[{}]/g, ""); }
 
+  /** Score an English voice: prefer natural/neural + clearly-female-sounding voices over old robotic ones. */
+  function scoreVoice(v) {
+    if (!/^en/i.test(v.lang)) return -Infinity;
+    let s = 0;
+    if (/en[-_]US/i.test(v.lang)) s += 2;
+    if (/natural|neural|premium|enhanced/i.test(v.name)) s += 10; // e.g. "Microsoft Aria Online (Natural)", macOS "(Enhanced)"/"(Premium)"
+    if (/aria|jenny|ava|michelle|emma|samantha|zira|susan|karen|moira|tessa|salli|joanna|ivy|kendra|kimberly|amy|female/i.test(v.name)) s += 5;
+    if (/guy|david|mark|daniel|james|ryan|christopher|eric|male/i.test(v.name)) s -= 8;
+    if (!v.localService) s += 1; // networked voices (e.g. "Google US English") are usually clearer than the offline fallback
+    return s;
+  }
   const Audio = {
     voice: null,
     supported: "speechSynthesis" in window,
+    pickVoice() {
+      const vs = window.speechSynthesis.getVoices();
+      if (!vs.length) return null;
+      if (state.settings.voiceURI) {
+        const chosen = vs.find(v => v.voiceURI === state.settings.voiceURI);
+        if (chosen) return chosen;
+      }
+      let best = null, bestScore = -Infinity;
+      vs.forEach(v => { const s = scoreVoice(v); if (s > bestScore) { bestScore = s; best = v; } });
+      return bestScore > -Infinity ? best : null;
+    },
     init() {
       if (!this.supported) return;
-      const choose = () => {
-        const vs = window.speechSynthesis.getVoices();
-        this.voice = vs.find(v => /en[-_]US/i.test(v.lang) && /Google|Samantha|Microsoft/i.test(v.name)) || vs.find(v => /^en[-_]/i.test(v.lang)) || null;
-      };
+      const choose = () => { this.voice = this.pickVoice(); };
       choose();
       window.speechSynthesis.onvoiceschanged = choose;
     },
     speak(text, slow) {
       if (!this.supported || !text) return;
-      if (!this.voice) {
-        const vs = window.speechSynthesis.getVoices();
-        if (vs.length) this.voice = vs.find(v => /en[-_]US/i.test(v.lang) && /Google|Samantha|Microsoft/i.test(v.name)) || vs.find(v => /^en[-_]/i.test(v.lang)) || null;
-      }
+      if (!this.voice) this.voice = this.pickVoice();
       try {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
@@ -174,6 +190,16 @@
     },
   };
   Audio.init();
+
+  /** Settings row: pick which installed voice reads English aloud (list depends on device/browser). */
+  function voiceRowHtml() {
+    if (!Audio.supported) return "";
+    const vs = window.speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang));
+    if (!vs.length) return '<p class="hint-line">לא נמצא קול אנגלי במכשיר. ברוב הדפדפנים (בעיקר Chrome עם אינטרנט) זה אמור לעבוד אוטומטית — נסי לרענן את הדף, ואם זה לא עוזר יש להוסיף קול אנגלי בהגדרות הקראה של המערכת.</p>';
+    const current = state.settings.voiceURI || (Audio.voice && Audio.voice.voiceURI) || "";
+    const options = vs.map(v => '<option value="' + esc(v.voiceURI) + '"' + (v.voiceURI === current ? " selected" : "") + ">" + esc(v.name) + "</option>").join("");
+    return '<label class="set-row"><span>קול הקראה 🔊</span><select id="set-voice"><option value="">אוטומטי (מומלץ)</option>' + options + "</select></label>";
+  }
 
   document.addEventListener("click", e => {
     const b = e.target.closest("[data-say]");
@@ -222,6 +248,30 @@
     t.classList.remove("hidden");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.add("hidden"), ms || 3500);
+  }
+
+  /** In-app confirmation dialog (native confirm() is unreliable in embedded/PWA browser contexts). */
+  function askConfirm(message, yesLabel, noLabel) {
+    const overlay = $("confirm-overlay");
+    $("confirm-message").textContent = message;
+    $("confirm-yes").textContent = yesLabel || "כן";
+    $("confirm-no").textContent = noLabel || "ביטול";
+    overlay.classList.remove("hidden");
+    return new Promise(resolve => {
+      const done = ok => { overlay.classList.add("hidden"); cleanup(); resolve(ok); };
+      const onYes = () => done(true);
+      const onNo = () => done(false);
+      const onKey = e => { if (e.key === "Escape") done(false); };
+      function cleanup() {
+        $("confirm-yes").removeEventListener("click", onYes);
+        $("confirm-no").removeEventListener("click", onNo);
+        document.removeEventListener("keydown", onKey);
+      }
+      $("confirm-yes").addEventListener("click", onYes);
+      $("confirm-no").addEventListener("click", onNo);
+      document.addEventListener("keydown", onKey);
+      try { $("confirm-no").focus(); } catch (e) { /* */ }
+    });
   }
 
   /* ============================================================
@@ -343,9 +393,9 @@
   $("user-name").addEventListener("keydown", e => { if (e.key === "Enter") $("btn-start").click(); });
   $("btn-continue").addEventListener("click", () => (state.onboarding.done ? goHome() : startOnboarding()));
   $("btn-reset").addEventListener("click", () => {
-    if (confirm("לאפס את כל ההתקדמות ולהתחיל מחדש? אי אפשר לבטל את זה.")) {
-      state = defaultState(); saveState(); initWelcomeScreen();
-    }
+    askConfirm("לאפס את כל ההתקדמות ולהתחיל מחדש? אי אפשר לבטל את זה.", "כן, לאפס", "ביטול").then(ok => {
+      if (ok) { state = defaultState(); saveState(); initWelcomeScreen(); }
+    });
   });
 
   const SELF_LEVELS = [
@@ -880,15 +930,17 @@
   }
 
   $("btn-lesson-exit").addEventListener("click", () => {
-    if (!confirm("לצאת עכשיו? מה שתרגלת נשמר, אבל השיעור לא יסומן כהושלם.")) return;
-    if (session) {
-      applySessionToSrs();
-      addStudyTime((now() - session.start) / 1000);
-      if (session.answeredCount > 0) markStudiedToday();
-      saveState();
-    }
-    session = null;
-    goHome();
+    askConfirm("לצאת עכשיו? מה שתרגלת נשמר, אבל השיעור לא יסומן כהושלם.", "כן, לצאת", "להמשיך בשיעור").then(ok => {
+      if (!ok) return;
+      if (session) {
+        applySessionToSrs();
+        addStudyTime((now() - session.start) / 1000);
+        if (session.answeredCount > 0) markStudiedToday();
+        saveState();
+      }
+      session = null;
+      goHome();
+    });
   });
 
   /* ============================================================
@@ -1253,15 +1305,17 @@
   }
 
   $("btn-chat-exit").addEventListener("click", () => {
-    if (!confirm("לצאת מהשיחה?")) return;
-    applySessionToSrs();
-    session = null;
-    if (chat) {
-      addStudyTime((now() - chat.start) / 1000);
-      markStudiedToday();
-    }
-    saveState();
-    goConvos();
+    askConfirm("לצאת מהשיחה?", "כן, לצאת", "להמשיך").then(ok => {
+      if (!ok) return;
+      applySessionToSrs();
+      session = null;
+      if (chat) {
+        addStudyTime((now() - chat.start) / 1000);
+        markStudiedToday();
+      }
+      saveState();
+      goConvos();
+    });
   });
 
   /* ============================================================
@@ -1291,13 +1345,20 @@
       '<h2 class="sec-title">הגדרות</h2><div class="settings">' +
       '<label class="set-row"><span>השמעה איטית כברירת מחדל 🐢</span><input type="checkbox" id="set-slow"' + (state.settings.slowAudio ? " checked" : "") + "></label>" +
       '<label class="set-row"><span>זמן יומי</span><select id="set-min">' + [10, 20, 30, 45].map(m => '<option value="' + m + '"' + (m === state.onboarding.dailyMinutes ? " selected" : "") + ">" + m + " דקות</option>").join("") + "</select></label>" +
+      voiceRowHtml() +
       '<button class="btn btn-ghost" id="set-onb">לעדכן רמה / מטרות</button>' +
       '<button class="btn btn-ghost danger" id="set-reset">איפוס כל ההתקדמות</button>' +
       '<p class="hint-line">ההתקדמות נשמרת רק בדפדפן הזה (אין חשבון או שרת), ולכן לא עוברת בין מכשירים.</p></div>';
     $("set-slow").addEventListener("change", e => { state.settings.slowAudio = e.target.checked; saveState(); });
     $("set-min").addEventListener("change", e => { state.onboarding.dailyMinutes = Number(e.target.value); saveState(); });
+    if ($("set-voice")) $("set-voice").addEventListener("change", e => { state.settings.voiceURI = e.target.value || null; Audio.voice = Audio.pickVoice(); saveState(); Audio.speak("Hello! This is my voice."); });
     $("set-onb").addEventListener("click", startOnboarding);
-    $("set-reset").addEventListener("click", () => { if (confirm("לאפס את כל ההתקדמות? אי אפשר לבטל.")) { state = defaultState(); saveState(); initWelcomeScreen(); showScreen("screen-welcome"); } });
+    $("set-reset").addEventListener("click", () => {
+      askConfirm("לאפס את כל ההתקדמות? אי אפשר לבטל.", "כן, לאפס", "ביטול").then(ok => {
+        if (!ok) return;
+        state = defaultState(); saveState(); initWelcomeScreen(); showScreen("screen-welcome");
+      });
+    });
     $("progress-body").querySelectorAll("[data-rem]").forEach(b => b.addEventListener("click", () => startRemediation(b.dataset.rem)));
     $("progress-body").querySelectorAll("[data-cert]").forEach(b => b.addEventListener("click", () => showCertificate(b.dataset.cert)));
     showScreen("screen-progress");

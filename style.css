@@ -113,6 +113,11 @@ bdi.en, .en{ unicode-bidi: isolate; direction: ltr; font-weight:700; }
 
 .toast{ position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 520px; background: var(--ink); color: var(--card); padding: 12px 16px; border-radius: 14px; font-size: 14px; z-index: 50; box-shadow: var(--shadow); text-align:center; }
 
+.modal-overlay{ position: fixed; inset: 0; background: rgba(20,14,40,.55); display:flex; align-items:center; justify-content:center; padding: 20px; z-index: 60; }
+.modal-card{ background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow-lift); padding: 24px 22px; max-width: 400px; width:100%; text-align:center; }
+.modal-card p{ font-size: 16px; line-height: 1.6; margin: 0 0 20px; }
+.modal-buttons{ display:flex; flex-direction:column; gap: 8px; }
+
 .progress-bar-outer{ display:block; background: var(--track); border-radius:20px; height:12px; overflow:hidden; }
 .progress-bar-inner{ display:block; background: linear-gradient(90deg, var(--accent), var(--star)); height:100%; width:0%; transition: width .4s ease; border-radius:20px; }
 

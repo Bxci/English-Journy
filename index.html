@@ -207,6 +207,16 @@
   </nav>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <div id="confirm-overlay" class="modal-overlay hidden" role="presentation">
+    <div class="modal-card" role="alertdialog" aria-modal="true" aria-labelledby="confirm-message">
+      <p id="confirm-message"></p>
+      <div class="modal-buttons">
+        <button type="button" id="confirm-yes" class="btn btn-primary"></button>
+        <button type="button" id="confirm-no" class="btn btn-ghost"></button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- תוכן הקורס (סדר הטעינה חשוב: course.js אחרון) -->
