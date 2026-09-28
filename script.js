@@ -177,11 +177,12 @@
       fetch("audio/manifest.json").then(r => (r.ok ? r.json() : [])).then(list => { this.manifest = new Set(list); }).catch(() => { this.manifest = new Set(); });
     },
     has(text) { return !!(this.manifest && this.manifest.has(fnv1a(text))); },
-    play(text) {
+    play(text, slow) {
       if (!this.el) { this.el = new window.Audio(); this.el.preload = "auto"; }
       this.el.pause();
       this.el.src = "audio/clips/" + fnv1a(text) + ".mp3";
       this.el.currentTime = 0;
+      this.el.playbackRate = slow ? 0.65 : 1;
       this.el.play().catch(() => { /* autoplay/user-gesture edge cases -> silently skip */ });
     },
   };
@@ -209,8 +210,10 @@
     },
     speak(text, slow) {
       if (!text) return;
-      // Real recorded human voice beats synthesis whenever we have a clip for it (not for slow-mode: clips are fixed-rate).
-      if (!slow && !state.settings.slowAudio && AudioClips.has(text)) { AudioClips.play(text); return; }
+      const wantSlow = !!(slow || state.settings.slowAudio);
+      // Real recorded human voice beats synthesis whenever we have a clip for it, slow or not
+      // (slow mode just plays the same clip at a reduced rate instead of falling back to synthesis).
+      if (AudioClips.has(text)) { AudioClips.play(text, wantSlow); return; }
       if (!this.supported) return;
       if (!this.voice) this.voice = this.pickVoice();
       const trimmed = String(text).trim();
@@ -220,7 +223,7 @@
         const u = new SpeechSynthesisUtterance(spoken);
         u.lang = "en-US";
         if (this.voice) u.voice = this.voice;
-        u.rate = slow || state.settings.slowAudio ? 0.6 : 0.9;
+        u.rate = wantSlow ? 0.6 : 0.9;
         window.speechSynthesis.speak(u);
       } catch (e) { /* ignore */ }
     },
