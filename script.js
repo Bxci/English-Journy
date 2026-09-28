@@ -567,6 +567,15 @@
       return (ra - rb) || (ga - gb);
     })[0] || null;
   }
+  /** An untried mission at/below the learner's current level, if any — only ever suggested when a
+   *  conversation is ALSO available (missions have no lesson-prerequisite gating of their own, so
+   *  this borrows the conversation gate to keep suggestions from appearing before she has any base
+   *  vocabulary). Rotates in roughly one day in three so it doesn't crowd out conversation practice. */
+  function recommendedMission() {
+    const order = ["pre-a1", "a1", "a2"];
+    const lv = order.indexOf(currentLevel());
+    return MISSIONS.filter(m => !state.missions[m.id] && order.indexOf(m.level) <= lv)[0] || null;
+  }
 
   function buildPlan() {
     rollDaily();
@@ -583,6 +592,8 @@
         if (rem.length) return Object.assign(ch, { icon: "🎯", title: "חיזוק ממוקד", sub: plainOf(conceptById[rem[0]].title), done: false, run: () => startRemediation(rem[0]) });
         return Object.assign(ch, { icon: "💪", title: "תרגול חופשי", sub: "תרגול של מה שהכי חלש כרגע", done: d.practiceDone > 0, run: startFreePractice });
       }
+      const mission = recommendedMission();
+      if (mission && new Date().getDate() % 3 === 0) return Object.assign(ch, { icon: mission.emoji, title: "משימה בעולם האמיתי", sub: mission.title, done: false, run: () => startMission(mission) });
       return Object.assign(ch, { icon: "💬", title: "תרגול שיחה", sub: convo.title, done: d.convoDone > 0, run: () => startConversation(convo) });
     });
   }

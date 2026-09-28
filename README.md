@@ -261,7 +261,7 @@ The validator checks unique ids; valid level/title/objective; prerequisites and 
 | True natural-language conversation (understanding genuinely novel phrasing, not just keyword/phrase matching) | No LLM API key is available, and a key embedded in frontend code would leak. Free-text replies (§8) are accepted via lexical matching (`pickBestMatch`, §18) against the scenario's authored candidate sentences — real coverage for reasonable paraphrases, but not true understanding of arbitrary input | A server-side proxy holding the key, calling a model constrained to the learner's unlocked vocabulary/grammar, plus the same post-conversation review |
 | Pronunciation / accent scoring | Browser speech recognition only returns text, not phoneme-level audio analysis — the UI is honest about this (§9, §18) | A pronunciation-assessment service (server-side) |
 | Guaranteed speech recognition | Browser-dependent (not Firefox; Chrome needs network) | Server-side STT |
-| A Playwright/E2E suite, missions suggested adaptively by the Daily Journey, a systematic accessibility audit | Scoped out of this pass — real work, not started | Each is a self-contained addition; none require new infrastructure |
+| A Playwright/E2E suite, a systematic accessibility audit | Scoped out of this pass — real work, not started | Each is a self-contained addition; none require new infrastructure |
 | Verified live PWA installation/offline behavior | Built (§20), but this development environment's browser preview blocks service worker registration entirely — needs a real-browser check after deployment | Open the deployed site in Chrome/Edge/Safari and verify via DevTools |
 | Deployment | None exists in this environment | Any static host works as-is |
 
@@ -317,7 +317,7 @@ Built on top of that, `pickBestMatch(text, items, textOf)` is what the Conversat
 - A wrong/unrecognized attempt never blocks progress: it offers a hint (the step's example phrasing) and lets the learner retry as many times as she wants.
 - Completing a mission awards stars and a small celebration; progress and completion are saved per mission in `state.missions`.
 - 4 missions shipped (coffee, introducing yourself, asking directions, buying something in a shop) — deliberately a small, polished set rather than a long list of thin ones, per the project's "quality over quantity" content principle.
-- Not yet wired into the Daily Journey / adaptive plan (§16) — missions are learner-initiated from the שיחה screen for now; suggesting them adaptively (e.g. "you've mastered ordering vocabulary — try the Coffee Mission") is a natural next step, not yet built.
+- Always reachable from the שיחה screen, **and** now surfaced inside the Daily Journey (`buildPlan()`'s "conversation" slot): on roughly one day in three, `recommendedMission()` swaps that slot for an untried mission at/below the learner's current level, instead of the usual suggested conversation. Missions have no lesson-prerequisite gating of their own, so this deliberately borrows the conversation slot's gate (only offered once a conversation is already available) to keep suggestions from appearing before she has any base vocabulary. Verified live: forced both branches (a "mission day" and a normal day) and confirmed the right one renders and launches correctly.
 
 ## 20. PWA / offline installability (`sw.js`, `manifest.webmanifest`, `icons/`)
 
