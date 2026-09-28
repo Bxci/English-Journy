@@ -49,6 +49,7 @@
       certificates: {},   // level -> date
       daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0 },
       history: [],         // archived daily records (last ~60 days) for the Weekly Progress summary
+      totalSpoken: 0,      // lifetime count of correctly-answered speaking exercises (for the "first sentence" badge)
       time: { totalSeconds: 0 },
       settings: { slowAudio: false, voiceURI: null },
       legacy: null,
@@ -772,7 +773,7 @@
     if (res.skipped) { goNext(); return; }
     const w = res.selfMarked ? M.EXERCISE_WEIGHTS.selfMarked : ex.w;
     recordAttempt(ex, res.ok, { w, given: res.given });
-    if (ex.type === "speak" && res.ok) { rollDaily(); state.daily.spokenDone = (state.daily.spokenDone || 0) + 1; }
+    if (ex.type === "speak" && res.ok) { rollDaily(); state.daily.spokenDone = (state.daily.spokenDone || 0) + 1; state.totalSpoken = (state.totalSpoken || 0) + 1; }
     session.answeredCount++;
     if (session.round === "main") { if (!(ex.id in session.first)) session.first[ex.id] = { ok: res.ok, w, type: ex.type }; }
     else session.reinforceAttempts.push({ ok: res.ok, w });
@@ -912,27 +913,45 @@
     const gift = $("reward-gift-box");
     gift.textContent = "🎁"; gift.dataset.opened = "false";
 
-    const badge = checkBadges();
-    if (badge) {
+    const newlyUnlocked = checkBadges();
+    if (newlyUnlocked.length) {
       $("badge-unlock").classList.remove("hidden");
-      $("badge-icon").textContent = badge.icon;
-      $("badge-name").textContent = badge.name;
+      $("badge-icon").textContent = newlyUnlocked[0].icon;
+      $("badge-name").textContent = newlyUnlocked[0].name;
+      announceBadges(newlyUnlocked.slice(1));
     } else $("badge-unlock").classList.add("hidden");
     pendingCertificate = checkCertificate();
     session = null;
     showScreen("screen-reward");
   }
 
+  /** True when badge `b`'s single criterion is currently met (whichever field it has). */
+  function badgeCriterionMet(b) {
+    if (b.lessonsRequired) return realLessons.filter(l => (state.lessons[l.id] || {}).completed).length >= b.lessonsRequired;
+    if (b.level) return realLessons.filter(l => l.level === b.level).every(l => (state.lessons[l.id] || {}).completed);
+    if (b.streakRequired) return state.streak >= b.streakRequired;
+    if (b.wordsRequired) return C.vocabulary.filter(v => masteryOf("v:" + v.id) >= CFG.LEARNED_THRESHOLD).length >= b.wordsRequired;
+    if (b.firstSpoken) return (state.totalSpoken || 0) >= 1;
+    if (b.firstConversation) return Object.values(state.conversations).some(c => (c.runs || 0) >= 1);
+    if (b.missionId) return !!(state.missions[b.missionId] && state.missions[b.missionId].completedAt);
+    if (b.missionsRequired) return Object.values(state.missions).filter(m => m && m.completedAt).length >= b.missionsRequired;
+    return false;
+  }
+
+  /** Checks every not-yet-unlocked badge; unlocks any newly-met ones (saves state). Returns the array of newly unlocked badges. */
   function checkBadges() {
-    const done = realLessons.filter(l => (state.lessons[l.id] || {}).completed).length;
-    let got = null;
+    const newly = [];
     BADGES.forEach(b => {
       if (state.badgesUnlocked.includes(b.id)) return;
-      const ok = b.lessonsRequired ? done >= b.lessonsRequired : realLessons.filter(l => l.level === b.level).every(l => (state.lessons[l.id] || {}).completed);
-      if (ok) { state.badgesUnlocked.push(b.id); got = got || b; }
+      if (badgeCriterionMet(b)) { state.badgesUnlocked.push(b.id); newly.push(b); }
     });
-    saveState();
-    return got;
+    if (newly.length) saveState();
+    return newly;
+  }
+
+  /** For completion flows that don't have the full reward screen (conversations, missions): a lightweight toast per newly unlocked badge. */
+  function announceBadges(newly) {
+    newly.forEach(b => toast(b.icon + " עיטור חדש נפתח: " + b.name + "!", 4000));
   }
 
   let pendingCertificate = null;
@@ -1387,6 +1406,7 @@
     h.history = (h.history || []).concat([{ at: now(), mistakes: chat.mistakes }]).slice(-5);
     state.conversations[s.id] = h;
     saveState();
+    announceBadges(checkBadges());
     const review = chat.mistakes.length
       ? '<h3>מה אפשר לשפר</h3><ul class="convo-review">' + chat.mistakes.map(m =>
         "<li><div><b>מה בחרת:</b> " + enSpan(m.picked) + "</div><div><b>בחירה טובה יותר:</b> " + enSpan(m.better) + sayButtons(m.better) + "</div><div><b>למה:</b> " + rich(m.why) + (conceptById[m.concept] ? '<div class="concept-link">נושא: ' + rich(conceptById[m.concept].title, { noAudio: true }) + "</div>" : "") + "</li>").join("") + "</ul>"
@@ -1463,8 +1483,10 @@
     state.missions[m.id] = { stepsDone: mission.doneSteps.slice(), attempts: mission.attempts, completedAt: now() };
     if (!already) { state.stars += 3; }
     saveState();
+    const newlyUnlocked = checkBadges();
     mission = null;
-    interstitial('<div class="reward-burst" aria-hidden="true">🎉</div><h2>השלמת את המשימה!</h2><p class="reward-message">הצלחת להעביר את המסר באנגלית — זה העיקר.</p>' + (already ? "" : '<p class="reward-note">+3 כוכבים ⭐</p>'), [{ label: "חזרה לשיחות ומשימות", run: goConvos }]);
+    interstitial('<div class="reward-burst" aria-hidden="true">🎉</div><h2>השלמת את המשימה!</h2><p class="reward-message">הצלחת להעביר את המסר באנגלית — זה העיקר.</p>' + (already ? "" : '<p class="reward-note">+3 כוכבים ⭐</p>') +
+      newlyUnlocked.map(b => '<p class="reward-note">' + b.icon + " עיטור חדש: " + esc(b.name) + "</p>").join(""), [{ label: "חזרה לשיחות ומשימות", run: goConvos }]);
   }
 
   $("btn-mission-exit").addEventListener("click", () => {

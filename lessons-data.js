@@ -22,7 +22,9 @@ var ENCOURAGEMENT_MESSAGES = [
 // מתנות (אמוג'י) שנפתחות בסיום שיעור
 var GIFTS = ["🌸", "🍫", "🎈", "🧸", "🍭", "🌈", "💐", "🎀", "🍩", "⭐", "🎵", "☕", "🦄", "🍓", "🎨"];
 
-// עיטורים (badges) — לפי מספר שיעורים שהושלמו באמת (לא דילוג), ולפי סיום רמה
+// עיטורים (badges) — כל אחד עם קריטריון אחד: lessonsRequired / level / streakRequired /
+// wordsRequired / firstSpoken / firstConversation / missionId / missionsRequired.
+// נבדקים ב-checkBadges() ב-script.js, שמפעיל את הקריטריון המתאים לכל badge.
 var BADGES = [
   { id: "b1", lessonsRequired: 1, icon: "🥉", name: "צעד ראשון" },
   { id: "b2", lessonsRequired: 5, icon: "🥈", name: "מתחילה בביטחון" },
@@ -32,6 +34,13 @@ var BADGES = [
   { id: "lvl-pre-a1", level: "pre-a1", icon: "🌱", name: "סיימתי Pre-A1" },
   { id: "lvl-a1", level: "a1", icon: "🌳", name: "סיימתי A1" },
   { id: "lvl-a2", level: "a2", icon: "🏔️", name: "סיימתי את שיעורי A2" },
+  { id: "first-spoken", firstSpoken: true, icon: "🗣️", name: "המשפט הראשון שלי" },
+  { id: "first-convo", firstConversation: true, icon: "💬", name: "השיחה הראשונה" },
+  { id: "words-50", wordsRequired: 50, icon: "📚", name: "50 מילים" },
+  { id: "words-100", wordsRequired: 100, icon: "📖", name: "100 מילים" },
+  { id: "streak-7", streakRequired: 7, icon: "🔥", name: "שבוע של למידה" },
+  { id: "mission-coffee", missionId: "mission-coffee", icon: "☕", name: "Coffee Mission" },
+  { id: "traveler", missionsRequired: 3, icon: "🧳", name: "Traveler" },
 ];
 
 // מטרות למידה — משמשות רק לטקסט מעודד ולסדר הצעת השיחות. לא משנות את סדר הקורס!
