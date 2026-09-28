@@ -257,7 +257,6 @@ The validator checks unique ids; valid level/title/objective; prerequisites and 
 
 | Not implemented | Why | What it would take |
 |---|---|---|
-| Cross-device sync, accounts, backup | No backend, database or auth exists here; progress is `localStorage` in one browser and is lost if site data is cleared | A small API + DB (e.g. a `users` + `progress` document per user) and auth; the v2 state object is already a single serializable document to sync |
 | Real AI conversation / free-text chat | No LLM API key is available, and a key embedded in frontend code would leak | A server-side proxy holding the key, calling a model with a system prompt constrained to the learner's unlocked vocabulary/grammar (which this curriculum already encodes per lesson), plus the same post-conversation review |
 | Pronunciation / accent scoring | Browser speech recognition only returns text | A pronunciation-assessment service (server-side) |
 | Guaranteed speech recognition | Browser-dependent (not Firefox; Chrome needs network) | Server-side STT |
@@ -265,4 +264,32 @@ The validator checks unique ids; valid level/title/objective; prerequisites and 
 | A2 lessons beyond the first 7 | Six A2 lessons are skeletons (ids, prerequisites, objectives, concept explanations) | Author exercises in `curriculum/a2.js`, remove `status: "planned"`, run `npm run validate` |
 | Audio recordings by native speakers | Only browser TTS | Recorded audio files per vocabulary item/example |
 
-**Highest-value next milestone if infrastructure becomes available:** a tiny backend with auth + a synced progress document (so the learner can't lose progress and can switch devices), then a server-side, level-constrained LLM conversation partner that reuses this curriculum's per-lesson vocabulary/grammar as its guardrails.
+**Highest-value next milestone if infrastructure becomes available:** a server-side, level-constrained LLM conversation partner that reuses this curriculum's per-lesson vocabulary/grammar as its guardrails.
+
+## 15. Cloud sync setup (optional accounts + cross-device sync)
+
+The app works 100% offline with `localStorage` and needs no setup at all — this section is only for turning on optional accounts + sync (email/password, Google, X/Twitter sign-in) via Firebase (free tier: 50k monthly active users, 1GB/50k-reads-per-day on Firestore — plenty for personal use).
+
+Until you do this, `firebase-config.js` keeps its placeholder values, `EJAuth.enabled` is `false`, and the account section in Settings just shows "not configured yet." Nothing breaks.
+
+**One-time setup (~5 minutes):**
+1. Go to the [Firebase console](https://console.firebase.google.com), sign in with a Google account, click **Add project**, name it anything (e.g. `english-journey`), Google Analytics is optional — skip it.
+2. **Build → Authentication → Get started.** Under **Sign-in method**, enable **Email/Password**. Optionally also enable **Google** and **Twitter (X)** — X requires an X Developer API key/secret, entered into the Firebase console's Twitter provider screen.
+3. **Build → Firestore Database → Create database.** Start in **production mode**, pick any region close to you.
+4. In Firestore, go to the **Rules** tab and replace the contents with:
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{uid} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
+     }
+   }
+   ```
+   This restricts every user to reading/writing only their own progress document — publish the rule.
+5. **Project settings (gear icon) → General → Your apps → click the `</>` (Web) icon** to register a web app (any nickname). It shows a `firebaseConfig` object.
+6. Copy those values into `firebase-config.js` in this repo (replace the `YOUR_...` placeholders). This file is safe to commit — these are public client identifiers, not secrets; the Firestore rule above is what actually protects the data.
+7. Reload the app. The Settings screen's "חשבון וסנכרון" section now shows real sign-up/sign-in/Google/X buttons.
+
+**How sync works:** `saveState()` (every progress-affecting action) debounces a write to `users/{uid}` in Firestore whenever someone is signed in; `localStorage` stays the source of truth for instant reads/offline use. On sign-in, if the cloud has no data yet the local state is pushed up; if the cloud has data and the local browser has none, the cloud state is pulled down; if both have real progress, the learner is asked once which one to keep.

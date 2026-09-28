@@ -88,6 +88,7 @@
     return defaultState();
   }
 
+  const Auth = window.EJAuth || { enabled: false, user: null, onChange: cb => setTimeout(() => cb(null), 0), saveCloudState() {} };
   let saveFailedWarned = false;
   function saveState() {
     try {
@@ -98,9 +99,11 @@
         toast("⚠️ לא הצלחנו לשמור את ההתקדמות (אין מקום אחסון פנוי או שהדפדפן חוסם שמירה). נסי לפנות מקום או לצאת ממצב גלישה פרטית.", 6000);
       }
     }
+    if (Auth.enabled && Auth.user) Auth.saveCloudState(Auth.user.uid, state);
   }
 
   let state = loadState();
+  const hasRealProgress = s => Object.keys(s.lessons).length > 0 || Object.keys(s.items).length > 0 || Object.keys(s.articlesRead || {}).length > 0;
 
   function rollDaily() {
     const t = todayStr();
@@ -1292,15 +1295,75 @@
       '<label class="set-row"><span>השמעה איטית כברירת מחדל 🐢</span><input type="checkbox" id="set-slow"' + (state.settings.slowAudio ? " checked" : "") + "></label>" +
       '<label class="set-row"><span>זמן יומי</span><select id="set-min">' + [10, 20, 30, 45].map(m => '<option value="' + m + '"' + (m === state.onboarding.dailyMinutes ? " selected" : "") + ">" + m + " דקות</option>").join("") + "</select></label>" +
       '<button class="btn btn-ghost" id="set-onb">לעדכן רמה / מטרות</button>' +
-      '<button class="btn btn-ghost danger" id="set-reset">איפוס כל ההתקדמות</button>' +
-      '<p class="hint-line">ההתקדמות נשמרת רק בדפדפן הזה (אין חשבון או שרת), ולכן לא עוברת בין מכשירים.</p></div>';
+      '<button class="btn btn-ghost danger" id="set-reset">איפוס כל ההתקדמות</button></div>' +
+      '<h2 class="sec-title">חשבון וסנכרון</h2><div class="settings" id="account-section"></div>';
     $("set-slow").addEventListener("change", e => { state.settings.slowAudio = e.target.checked; saveState(); });
     $("set-min").addEventListener("change", e => { state.onboarding.dailyMinutes = Number(e.target.value); saveState(); });
     $("set-onb").addEventListener("click", startOnboarding);
     $("set-reset").addEventListener("click", () => { if (confirm("לאפס את כל ההתקדמות? אי אפשר לבטל.")) { state = defaultState(); saveState(); initWelcomeScreen(); showScreen("screen-welcome"); } });
     $("progress-body").querySelectorAll("[data-rem]").forEach(b => b.addEventListener("click", () => startRemediation(b.dataset.rem)));
     $("progress-body").querySelectorAll("[data-cert]").forEach(b => b.addEventListener("click", () => showCertificate(b.dataset.cert)));
+    renderAccountSection();
     showScreen("screen-progress");
+  }
+
+  /* ============================================================
+     Account / cloud sync (optional — see auth.js, firebase-config.js)
+     ============================================================ */
+  function renderAccountSection() {
+    const box = $("account-section");
+    if (!box) return;
+    if (!Auth.enabled) {
+      box.innerHTML = '<p class="hint-line">ההתקדמות נשמרת בדפדפן הזה בלבד (הסנכרון בענן עוד לא הוגדר לאפליקציה), ולכן לא עוברת בין מכשירים.</p>';
+      return;
+    }
+    const user = Auth.user;
+    if (user) {
+      box.innerHTML =
+        '<p class="hint-line">מחוברת כ-<b dir="ltr">' + esc(user.email || "") + '</b> · ההתקדמות מסונכרנת אוטומטית ☁️</p>' +
+        '<button class="btn btn-ghost danger" id="acc-signout">התנתקות</button>';
+      $("acc-signout").addEventListener("click", () => Auth.signOut());
+      return;
+    }
+    box.innerHTML =
+      '<p class="hint-line">התחברי כדי לשמור את ההתקדמות בענן ולהמשיך מכל מכשיר.</p>' +
+      '<div id="acc-error" class="hint-line acc-error"></div>' +
+      '<input type="email" id="acc-email" class="text-input" placeholder="אימייל" autocomplete="email">' +
+      '<input type="password" id="acc-pass" class="text-input" placeholder="סיסמה (לפחות 6 תווים)" autocomplete="current-password">' +
+      '<button class="btn btn-primary" id="acc-signin">התחברות</button>' +
+      '<button class="btn btn-ghost" id="acc-signup">יצירת חשבון חדש</button>' +
+      '<button class="btn btn-ghost" id="acc-google">התחברות עם Google</button>' +
+      '<button class="btn btn-ghost" id="acc-x">התחברות עם X</button>';
+    const err = msg => { $("acc-error").textContent = msg || ""; };
+    const creds = () => ({ email: $("acc-email").value.trim(), pass: $("acc-pass").value });
+    const busy = fn => e => { err(""); const b = e.currentTarget; b.disabled = true; fn().catch(ex => err(ex.message)).finally(() => { b.disabled = false; }); };
+    $("acc-signin").addEventListener("click", busy(() => { const { email, pass } = creds(); if (!email || !pass) return Promise.reject(new Error("נא למלא אימייל וסיסמה")); return Auth.signInEmail(email, pass); }));
+    $("acc-signup").addEventListener("click", busy(() => { const { email, pass } = creds(); if (!email || !pass) return Promise.reject(new Error("נא למלא אימייל וסיסמה")); return Auth.signUpEmail(email, pass); }));
+    $("acc-google").addEventListener("click", busy(() => Auth.signInGoogle()));
+    $("acc-x").addEventListener("click", busy(() => Auth.signInX()));
+  }
+
+  function handleAuthChange(user) {
+    renderAccountSection();
+    if (!user) return;
+    Auth.loadCloudState(user.uid).then(cloud => {
+      if (!cloud || !cloud.state) { saveState(); return; } // nothing in the cloud yet -> push what we have
+      const localHas = hasRealProgress(state), cloudHas = hasRealProgress(cloud.state);
+      if (!localHas && cloudHas) {
+        state = mergeWithDefaults(cloud.state);
+        saveState();
+        toast("ההתקדמות שלך נטענה מהענן 🌟", 3500);
+      } else if (localHas && cloudHas) {
+        if (confirm("יש התקדמות גם במכשיר הזה וגם בחשבון בענן. לטעון את הגרסה מהענן? (המידע במכשיר הזה יוחלף)")) {
+          state = mergeWithDefaults(cloud.state);
+        }
+        saveState();
+      } else {
+        saveState(); // push local (fresh signup, or local is the newer/only copy)
+      }
+      if (screens["screen-progress"].classList.contains("active")) goProgress();
+      else renderAccountSection();
+    });
   }
 
   /* ============================================================
@@ -1308,6 +1371,7 @@
      ============================================================ */
   initWelcomeScreen();
   showScreen("screen-welcome");
+  Auth.onChange(handleAuthChange);
   // debugging aid (inspect from the browser console)
   window.__EJ_APP__ = { get state() { return state; }, get current() { return current; }, get session() { return session; }, lessonMastery, nextLesson, goHome, goMap, goProgress, goConvos, startLesson, startReview, startConversation };
 })();
