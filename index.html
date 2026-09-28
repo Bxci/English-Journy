@@ -84,6 +84,17 @@
       <b>שיחות מובנות, לא צ'אט חופשי.</b> כל שיחה נכתבה מראש, והיא משתמשת רק במילים ובדקדוק מהשיעורים שכבר סיימת. זו לא שיחה עם בינה מלאכותית, אבל זה תרגול בטוח של מצבים אמיתיים.
     </div>
     <div id="convo-list" class="convo-list"></div>
+    <h2 class="sec-title convo-section-title">משימות בעולם האמיתי 🌍</h2>
+    <div class="convo-note">קבלי מטרה תקשורתית — לא נגיד לך אילו מילים בדיוק להשתמש. אנחנו בודקות אם הצלחת להעביר את המסר, לא רק דקדוק מושלם.</div>
+    <div id="mission-list" class="convo-list"></div>
+  </section>
+
+  <section id="screen-mission" class="screen">
+    <header class="lesson-topbar">
+      <button class="icon-btn" id="btn-mission-exit" aria-label="יציאה מהמשימה">✖️</button>
+      <div class="chat-title" id="mission-title"></div>
+    </header>
+    <div id="mission-body" class="mission-body"></div>
   </section>
 
   <section id="screen-chat" class="screen">
@@ -228,6 +239,7 @@
 <script src="curriculum/conversations.js"></script>
 <script src="curriculum/course.js"></script>
 <script src="curriculum/articles.js"></script>
+<script src="curriculum/missions.js"></script>
 <!-- מנוע הלמידה (פונקציות טהורות, נבדקות ב-tests/) -->
 <script src="engine/normalize.js"></script>
 <script src="engine/mastery.js"></script>
@@ -235,6 +247,7 @@
 <script src="engine/unlock.js"></script>
 <script src="engine/mistakes.js"></script>
 <script src="engine/adaptive.js"></script>
+<script src="engine/missions.js"></script>
 <script src="engine/exercises.js"></script>
 <!-- הודעות, מתנות, עיטורים, מבחן רמה -->
 <script src="lessons-data.js"></script>

@@ -188,7 +188,7 @@ There is **no LLM and no API key** in this project, so conversation practice is 
 - Each node has an NPC line (English + Hebrew translation on demand + audio) and several replies: one or more good ones (which may branch) and wrong ones with a Hebrew `why` and a concept id.
 - A scenario unlocks only after the lessons in `requires`; the validator checks that every feedback concept is taught within those lessons. So the "partner" never goes above the learner's level **by construction** — the content is written for that level, not generated.
 - Wrong choices are recorded as mistakes on their concept (feeding mastery/remediation). The end screen lists **what you picked / a better choice / why**, and offers targeted practice on the weakest concept.
-- If speech recognition is available, the learner can say the reply instead of tapping it (matched against the offered replies).
+- The learner can respond three ways: **tap** a choice, **say** it (if speech recognition is available), or **type her own words** in a free-text box — all three go through the same matcher (`engine/normalize.js` `pickBestMatch()`, §18), so a natural paraphrase like "Hi Tom, my name is Dana" is accepted just as well as the exact listed sentence.
 - The UI labels it clearly: "שיחות מובנות, לא צ'אט חופשי ... זו לא שיחה עם בינה מלאכותית".
 
 ## 9. Audio and speech — and real browser limits
@@ -261,7 +261,6 @@ The validator checks unique ids; valid level/title/objective; prerequisites and 
 | Real AI conversation / free-text chat | No LLM API key is available, and a key embedded in frontend code would leak. Conversations use a deterministic branching-dialogue engine instead (§8) | A server-side proxy holding the key, calling a model constrained to the learner's unlocked vocabulary/grammar, plus the same post-conversation review |
 | Pronunciation / accent scoring | Browser speech recognition only returns text, not phoneme-level audio analysis — the UI is honest about this (§9) | A pronunciation-assessment service (server-side) |
 | Guaranteed speech recognition | Browser-dependent (not Firefox; Chrome needs network) | Server-side STT |
-| Real-world "missions" (task-goal practice, e.g. "order a coffee" evaluated on communication success rather than exact wording) | Would need a new content type + a much looser evaluator than the current exact-choice conversation engine; a real, scoped feature, not started | New `curriculum/missions.js` content, a goal-completion evaluator, dedicated UI |
 | Diagnostic placement test / richer onboarding | The onboarding already has a lightweight self-assessed level pick (§10); a short adaptive quiz that places the learner precisely was not built | A small item bank per level + a stopping rule (stop once confident), reusing the Mastery Engine's confidence math |
 | Weekly progress email/summary screen, achievement badges beyond the existing set, PWA installability audit, a Playwright/E2E suite | Scoped out of this pass — real work, not started | Each is a self-contained addition; none require new infrastructure |
 | Deployment | None exists in this environment | Any static host works as-is |
@@ -303,3 +302,19 @@ Since there's intentionally no account system, Settings has "ייצוא התקד
 
 - **Export** serializes `{ format: "english-journey-backup", backupVersion: 1, exportedAt, state }` to a downloaded `.json` file (via `Blob` + a temporary `<a download>`, no server involved).
 - **Import** reads the file with `FileReader`, `JSON.parse`s it (a parse failure shows a friendly Hebrew error, never a crash), checks the parsed value has the expected shape, runs it through the same `mergeWithDefaults()` used for `localStorage` on every boot (so an old or partial backup still loads safely), shows a preview (lessons completed / streak / minutes / export date) in the existing in-app confirm dialog, and only replaces the current state if the learner confirms. Imported data is only ever used as a plain object — it is never `eval`'d or rendered as HTML, so a malformed or hostile file can't execute anything.
+
+## 18. Speaking Engine: structured, honest speech comparison (`engine/normalize.js`)
+
+`matchSpeech(transcripts, expected)` returns `{ ok, score, best, matched, missing, extra }` — which expected words were heard, which weren't, and what leftover words the recognizer produced (usually filler like "uh", never counted against `ok`). The speaking exercise UI shows "שמעתי: ... / חסר: ... / מילים נוספות ששמעתי: ..." — actionable, structured feedback, not just a pass/fail. This is explicitly **word-recognition matching, not pronunciation or accent scoring** — browser speech recognition cannot provide that, and the UI never claims otherwise (see §9).
+
+Built on top of that, `pickBestMatch(text, items, textOf)` is what the Conversation Engine (§8) uses to decide which of a node's several candidate replies the learner meant, whether she typed or spoke it. A plain word-overlap ratio is easy to satisfy by accident against a *short* candidate — "Hi, I am Dana" shares 2 of the 3 words in an unrelated "I am fine." (a coincidental 67%). `pickBestMatch()` requires a near-exact match for short (≤ 4 word) candidates, and requires the winner to clearly beat the runner-up (≥ 0.15 score gap) — an ambiguous call returns `null` so the caller can honestly say "couldn't quite understand that, try rephrasing" instead of confidently matching the wrong reply. (This exact false-positive was caught by live-testing during development — see the test suite for the reproduction.)
+
+## 19. Real-world missions (`curriculum/missions.js`, `engine/missions.js`)
+
+"משימות בעולם האמיתי", reachable from the שיחה screen. Unlike a lesson exercise, a mission gives a **communicative goal** broken into a few steps (e.g. the Coffee Mission: greet → order the drink → be polite → say thanks) and evaluates whether the learner's own free-typed words accomplished each step — not whether she used one exact sentence.
+
+- Each step carries `keywords`: groups of interchangeable phrases (e.g. greet = "hi" OR "hello" OR "good morning"). `stepMatches(text, step)` (pure, tested) checks whether the normalized input contains any phrase from any group — intentionally simple substring matching, not full intent recognition, which isn't achievable offline without an LLM (see §14 for what that would take).
+- A wrong/unrecognized attempt never blocks progress: it offers a hint (the step's example phrasing) and lets the learner retry as many times as she wants.
+- Completing a mission awards stars and a small celebration; progress and completion are saved per mission in `state.missions`.
+- 4 missions shipped (coffee, introducing yourself, asking directions, buying something in a shop) — deliberately a small, polished set rather than a long list of thin ones, per the project's "quality over quantity" content principle.
+- Not yet wired into the Daily Journey / adaptive plan (§16) — missions are learner-initiated from the שיחה screen for now; suggesting them adaptively (e.g. "you've mastered ordering vocabulary — try the Coffee Mission") is a natural next step, not yet built.

@@ -7,9 +7,11 @@
   const C = window.CURRICULUM;
   const ARTICLES = window.ARTICLES || [];
   const articleById = {}; ARTICLES.forEach(a => { articleById[a.id] = a; });
+  const MISSIONS = window.MISSIONS || [];
+  const missionById = {}; MISSIONS.forEach(m => { missionById[m.id] = m; });
   const vocabById = {}; (C.vocabulary || []).forEach(v => { vocabById[v.id] = v; });
   const EJ = window.EJ;
-  const M = EJ.mastery, SRS = EJ.srs, UN = EJ.unlock, MI = EJ.mistakes, N = EJ.normalize, AD = EJ.adaptive;
+  const M = EJ.mastery, SRS = EJ.srs, UN = EJ.unlock, MI = EJ.mistakes, N = EJ.normalize, AD = EJ.adaptive, MS = EJ.missions;
   const CFG = M.CONFIG;
   const engine = EJ.exercises.createEngine(C);
   const index = UN.buildIndex(C);
@@ -43,6 +45,7 @@
       remediation: {},    // conceptId -> { due, created }
       conversations: {},  // scenarioId -> { runs, lastAt, lastMistakes, history: [] }
       articlesRead: {},   // articleId -> { at }
+      missions: {},       // missionId -> { completedAt, stepsDone: [stepId,...], attempts }
       certificates: {},   // level -> date
       daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0 },
       time: { totalSeconds: 0 },
@@ -1258,6 +1261,16 @@
       b.addEventListener("click", () => (open ? startConversation(s) : toast("🔒 השיחה הזו משתמשת בחומר משיעורים שעוד לא סיימת — כך היא אף פעם לא מעל הרמה שלך.", 4500)));
       list.appendChild(b);
     });
+    const mlist = $("mission-list");
+    mlist.innerHTML = "";
+    MISSIONS.forEach(m => {
+      const h = state.missions[m.id];
+      const b = document.createElement("button");
+      b.className = "convo-item";
+      b.innerHTML = '<span class="convo-icon" aria-hidden="true">' + m.emoji + '</span><span class="plan-text"><b>' + esc(m.title) + (h && h.completedAt ? ' <span class="tag good">הושלמה ✓</span>' : "") + "</b><span>" + LEVEL_NAME[m.level] + (h && h.completedAt ? " · הושלמה" : "") + "</span></span>";
+      b.addEventListener("click", () => startMission(m));
+      mlist.appendChild(b);
+    });
     showScreen("screen-convos");
   }
 
@@ -1388,6 +1401,72 @@
         addStudyTime((now() - chat.start) / 1000);
         markStudiedToday();
       }
+      saveState();
+      goConvos();
+    });
+  });
+
+  /* ============================================================
+     Real-world missions — communicative goal, not exact wording (engine/missions.js)
+     ============================================================ */
+  let mission = null;
+  function startMission(m) {
+    const prior = state.missions[m.id];
+    mission = { m, start: now(), doneSteps: (prior && prior.completedAt) ? [] : (prior && prior.stepsDone ? prior.stepsDone.slice() : []), attempts: 0 };
+    $("mission-title").textContent = m.emoji + " " + m.title;
+    showScreen("screen-mission");
+    renderMissionStep();
+  }
+
+  function renderMissionStep() {
+    const m = mission.m;
+    const progress = MS.missionProgress(m, mission.doneSteps);
+    const checklist = '<ul class="mission-checklist">' + m.steps.map(s => '<li class="' + (mission.doneSteps.includes(s.id) ? "done" : "") + '">' + (mission.doneSteps.includes(s.id) ? "✅" : "⬜") + " " + esc(s.label) + "</li>").join("") + "</ul>";
+    if (progress.complete) { finishMission(); return; }
+    const step = progress.remaining[0];
+    $("mission-body").innerHTML =
+      '<p class="mission-intro">' + esc(m.intro) + "</p>" + checklist +
+      '<div class="mission-step-card"><div class="mission-step-label">' + esc(step.label) + '</div>' +
+      '<input id="mission-input" class="text-input" type="text" dir="ltr" lang="en" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="מה תגידי? (באנגלית)">' +
+      '<div id="mission-feedback" class="hint-line"></div>' +
+      '<button class="btn btn-primary btn-block" id="mission-check">בדיקה</button>' +
+      '<button class="btn btn-ghost small" id="mission-hint">רמז</button></div>';
+    const submit = () => {
+      const typed = $("mission-input").value.trim();
+      if (!typed) return;
+      mission.attempts++;
+      if (MS.stepMatches(typed, step)) {
+        mission.doneSteps.push(step.id);
+        state.missions[m.id] = { stepsDone: mission.doneSteps.slice(), attempts: mission.attempts, completedAt: (state.missions[m.id] || {}).completedAt || null };
+        saveState();
+        toast("כל הכבוד! ✅", 1800);
+        renderMissionStep();
+        return;
+      }
+      $("mission-feedback").textContent = "לא הצלחתי לזהות את זה — נסי שוב, או לחצי «רמז».";
+    };
+    $("mission-check").addEventListener("click", submit);
+    $("mission-input").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+    $("mission-hint").addEventListener("click", () => { $("mission-feedback").textContent = "💡 " + step.hint; });
+  }
+
+  function finishMission() {
+    const m = mission.m;
+    addStudyTime((now() - mission.start) / 1000);
+    markStudiedToday();
+    const already = !!(state.missions[m.id] && state.missions[m.id].completedAt);
+    state.missions[m.id] = { stepsDone: mission.doneSteps.slice(), attempts: mission.attempts, completedAt: now() };
+    if (!already) { state.stars += 3; }
+    saveState();
+    mission = null;
+    interstitial('<div class="reward-burst" aria-hidden="true">🎉</div><h2>השלמת את המשימה!</h2><p class="reward-message">הצלחת להעביר את המסר באנגלית — זה העיקר.</p>' + (already ? "" : '<p class="reward-note">+3 כוכבים ⭐</p>'), [{ label: "חזרה לשיחות ומשימות", run: goConvos }]);
+  }
+
+  $("btn-mission-exit").addEventListener("click", () => {
+    askConfirm("לצאת מהמשימה? מה שהשלמת נשמר.", "כן, לצאת", "להמשיך").then(ok => {
+      if (!ok) return;
+      if (mission) { addStudyTime((now() - mission.start) / 1000); if (mission.doneSteps.length) markStudiedToday(); }
+      mission = null;
       saveState();
       goConvos();
     });
