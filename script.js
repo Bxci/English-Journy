@@ -5,6 +5,9 @@
 (function () {
   "use strict";
   const C = window.CURRICULUM;
+  const ARTICLES = window.ARTICLES || [];
+  const articleById = {}; ARTICLES.forEach(a => { articleById[a.id] = a; });
+  const vocabById = {}; (C.vocabulary || []).forEach(v => { vocabById[v.id] = v; });
   const EJ = window.EJ;
   const M = EJ.mastery, SRS = EJ.srs, UN = EJ.unlock, MI = EJ.mistakes, N = EJ.normalize;
   const CFG = M.CONFIG;
@@ -39,6 +42,7 @@
       mistakes: {},       // conceptId -> { count, times, last }
       remediation: {},    // conceptId -> { due, created }
       conversations: {},  // scenarioId -> { runs, lastAt, lastMistakes, history: [] }
+      articlesRead: {},   // articleId -> { at }
       certificates: {},   // level -> date
       daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0 },
       time: { totalSeconds: 0 },
@@ -225,7 +229,7 @@
      ============================================================ */
   const screens = {};
   document.querySelectorAll(".screen").forEach(s => { screens[s.id] = s; });
-  const NAV_SCREENS = ["screen-home", "screen-map", "screen-convos", "screen-progress"];
+  const NAV_SCREENS = ["screen-home", "screen-map", "screen-reading", "screen-convos", "screen-progress"];
 
   function showScreen(id) {
     Object.values(screens).forEach(s => s.classList.remove("active"));
@@ -244,7 +248,7 @@
   $("bottom-nav").addEventListener("click", e => {
     const b = e.target.closest("[data-nav]");
     if (!b) return;
-    ({ "screen-home": goHome, "screen-map": goMap, "screen-convos": goConvos, "screen-progress": goProgress })[b.dataset.nav]();
+    ({ "screen-home": goHome, "screen-map": goMap, "screen-reading": goReading, "screen-convos": goConvos, "screen-progress": goProgress })[b.dataset.nav]();
   });
 
   /* ============================================================
@@ -1072,6 +1076,59 @@
       });
     },
   };
+
+  /* ============================================================
+     Reading — free articles with tap-to-hear sentences
+     ============================================================ */
+  function goReading() {
+    const list = $("reading-list");
+    list.innerHTML = "";
+    ARTICLES.forEach(a => {
+      const read = state.articlesRead[a.id];
+      const b = document.createElement("button");
+      b.className = "reading-item" + (read ? " done" : "");
+      b.innerHTML = '<span class="reading-icon" aria-hidden="true">' + a.emoji + '</span><span class="plan-text"><b>' + esc(a.title) + "</b><span>" +
+        LEVEL_NAME[a.level] + " · כ-" + a.minutes + ' דקות' + (read ? " · נקרא ✓" : "") + "</span></span>";
+      b.addEventListener("click", () => openArticle(a));
+      list.appendChild(b);
+    });
+    showScreen("screen-reading");
+  }
+
+  let article = null;
+  function openArticle(a) {
+    article = { a, start: now() };
+    $("article-title").textContent = a.emoji + " " + a.title;
+    const body = $("article-body");
+    body.innerHTML = a.paragraphs.map(p =>
+      '<p class="article-para">' + p.map(([en, he]) =>
+        '<span class="article-sentence"><button type="button" class="en en-say article-en" dir="ltr" lang="en" data-say="' + esc(en) + '" aria-label="השמעה: ' + esc(en) + '">' + esc(en) + '</button><span class="article-he">' + esc(he) + "</span></span>"
+      ).join(" ") + "</p>"
+    ).join("");
+    showScreen("screen-article");
+  }
+
+  function finishArticle() {
+    if (!article) return;
+    const a = article.a;
+    const already = !!state.articlesRead[a.id];
+    state.articlesRead[a.id] = { at: now() };
+    addStudyTime((now() - article.start) / 1000);
+    markStudiedToday();
+    const t = now();
+    (a.vocab || []).forEach(vid => {
+      if (!vocabById[vid]) return;
+      const key = "v:" + vid;
+      const card = state.srs[key] || SRS.newCard(key, t);
+      state.srs[key] = SRS.scheduleReview(card, true, t);
+    });
+    saveState();
+    article = null;
+    toast(already ? "מעולה, עוד סיבוב קריאה! 📖" : "כל הכבוד! המילים החדשות נכנסו לחזרות שלך 🌟", 3500);
+    goReading();
+  }
+  $("btn-article-done").addEventListener("click", finishArticle);
+  $("btn-article-exit").addEventListener("click", () => { article = null; goReading(); });
 
   /* ============================================================
      Scripted conversations

@@ -348,4 +348,28 @@
     ["rule", "חוק / כלל", "📏", "This is a rule."], ["early", "מוקדם", "🌄", "You should go to bed early.", { partOfSpeech: "adverb" }],
     ["smoke", "לעשן", "🚭", "You must not smoke here.", { partOfSpeech: "verb" }], ["dentist", "רופא / רופאת שיניים", "🦷", "I have to go to the dentist."],
   ]);
+
+  /* ======================= READING (vocabulary that appears in the Reading articles) ======================= */
+  add("reading", "a1", "noun", [
+    ["friendship", "חברות", "👭", "Friendship is important to me."],
+    ["confidence", "ביטחון עצמי", "💪", "She speaks with confidence."],
+    ["routine", "שגרה", "🗓️", "I have a morning routine."],
+    ["self-care", "טיפוח עצמי", "🛁", "Self-care is not selfish."],
+    ["relationship", "מערכת יחסים", "💞", "We have a good relationship."],
+    ["support", "תמיכה", "🤝", "My friends give me support.", { partOfSpeech: "noun" }],
+    ["skin", "עור", "🧴", "I take care of my skin."],
+  ]);
+  add("reading", "a2", "adjective", [
+    ["grateful", "אסירת תודה", "🙏", "I am grateful for my friends."],
+    ["honest", "כנה / כן", "💬", "Be honest with yourself."],
+    ["comfortable", "נוח", "😌", "These shoes are comfortable."],
+    ["worth it", "שווה את זה", "✨", "It is worth it."],
+    ["overwhelmed", "מוצפת", "😵", "Sometimes I feel overwhelmed."],
+  ]);
+  add("reading", "a2", "verb", [
+    ["deserve", "מגיע ל / ראויה ל", "🌟", "You deserve to be happy."],
+    ["trust", "לבטוח", "🤞", "I trust my best friend."],
+    ["forgive", "לסלוח", "🕊️", "It is hard to forgive."],
+    ["recharge", "להיטען מחדש", "🔋", "I recharge on the weekend."],
+  ]);
 })(typeof globalThis !== "undefined" ? globalThis : this);

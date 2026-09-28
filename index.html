@@ -99,6 +99,28 @@
     </footer>
   </section>
 
+  <!-- ===================== קריאה ===================== -->
+  <section id="screen-reading" class="screen has-nav">
+    <header class="topbar">
+      <div class="topbar-title">קריאה 📖</div>
+    </header>
+    <div class="reading-note">
+      מאמרים קצרים באנגלית עם תרגום לעברית לכל משפט. אפשר להקיש על כל משפט כדי לשמוע אותו, ולסמן מאמר כ"קראתי" כשמסיימים — המילים החדשות ייכנסו למחזור החזרות שלך.
+    </div>
+    <div id="reading-list" class="reading-list"></div>
+  </section>
+
+  <section id="screen-article" class="screen">
+    <header class="lesson-topbar">
+      <button class="icon-btn" id="btn-article-exit" aria-label="יציאה מהמאמר">✖️</button>
+      <div class="chat-title" id="article-title"></div>
+    </header>
+    <div id="article-body" class="article-body"></div>
+    <footer class="lesson-footer">
+      <button id="btn-article-done" class="btn btn-primary btn-block">סיימתי לקרוא ✅</button>
+    </footer>
+  </section>
+
   <!-- ===================== התקדמות ===================== -->
   <section id="screen-progress" class="screen has-nav">
     <header class="topbar">
@@ -179,6 +201,7 @@
   <nav class="bottom-nav hidden" id="bottom-nav" aria-label="ניווט ראשי">
     <button data-nav="screen-home"><span aria-hidden="true">🏠</span>היום</button>
     <button data-nav="screen-map"><span aria-hidden="true">🗺️</span>מפה</button>
+    <button data-nav="screen-reading"><span aria-hidden="true">📖</span>קריאה</button>
     <button data-nav="screen-convos"><span aria-hidden="true">💬</span>שיחה</button>
     <button data-nav="screen-progress"><span aria-hidden="true">📈</span>התקדמות</button>
   </nav>
@@ -194,6 +217,7 @@
 <script src="curriculum/a2.js"></script>
 <script src="curriculum/conversations.js"></script>
 <script src="curriculum/course.js"></script>
+<script src="curriculum/articles.js"></script>
 <!-- מנוע הלמידה (פונקציות טהורות, נבדקות ב-tests/) -->
 <script src="engine/normalize.js"></script>
 <script src="engine/mastery.js"></script>
