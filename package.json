@@ -1,0 +1,14 @@
+{
+  "name": "english-journey",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Hebrew-interface English course (Pre-A1 to A2) with an adaptive learning engine. Static client-side site: open index.html.",
+  "scripts": {
+    "test": "node --test tests",
+    "validate": "node scripts/validate-curriculum.js",
+    "check": "node scripts/check-syntax.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

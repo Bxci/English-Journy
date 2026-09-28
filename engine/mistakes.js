@@ -53,13 +53,15 @@
     let left = total;
     let reviewItems = 0;
     if (input.dueCount > 0) {
-      const minutes = Math.max(2, Math.min(Math.round(total * 0.35), Math.ceil(input.dueCount / 2)));
+      let minutes = Math.max(2, Math.min(Math.round(total * 0.35), Math.ceil(input.dueCount / 2)));
+      if (input.hasLesson) minutes = Math.min(minutes, Math.max(2, total - 5));
       reviewItems = Math.min(input.dueCount, minutes * 2);
       chunks.push({ kind: "review", minutes });
       left -= minutes;
     }
-    if (input.remediationCount > 0 && left > 4) {
-      const minutes = Math.min(5, Math.max(3, Math.round(total * 0.15)));
+    const practiceMinutes = Math.min(5, Math.max(3, Math.round(total * 0.15)));
+    if (input.remediationCount > 0 && left - practiceMinutes >= (input.hasLesson ? 5 : 0)) {
+      const minutes = practiceMinutes;
       chunks.push({ kind: "practice", minutes });
       left -= minutes;
     }

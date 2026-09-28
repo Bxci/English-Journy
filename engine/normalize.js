@@ -7,7 +7,8 @@
    - curly quotes/apostrophes unified
    - contractions expanded (I'm == I am) unless the exercise sets strictForm
    - digits and number words are equivalent (13 == thirteen, 21 == twenty-one)
-   - one-letter typo tolerance for answers of 5+ letters ("near" match, still counted correct)
+   - one-letter spelling slip tolerated inside ONE word of 6+ letters (shorter words like these/those, wrote/write, woman/women must be exact) ("near" match, still counted correct),
+     but never when the difference is a grammatical ending (-s, -es, -d, -ed, -ing): "She work" != "She works"
 */
 (function (root, factory) {
   const api = factory();
@@ -42,6 +43,12 @@
     [/\blet's\b/g, "let us"], [/\bi'd\b/g, "i would"],
   ];
 
+  // Contractions typed without the apostrophe ("im", "dont"). Ambiguous ones (its, were, ill, well, wed) are excluded.
+  const NO_APOSTROPHE_MAP = { im: "i am", youre: "you are", theyre: "they are", shes: "she is", hes: "he is", isnt: "is not", arent: "are not",
+    wasnt: "was not", werent: "were not", dont: "do not", doesnt: "does not", didnt: "did not", cant: "cannot", wont: "will not",
+    ive: "i have", whats: "what is", thats: "that is", theres: "there is", shouldnt: "should not", mustnt: "must not", havent: "have not", hasnt: "has not" };
+  const NO_APOSTROPHE = new RegExp("\\b(" + Object.keys(NO_APOSTROPHE_MAP).join("|") + ")\\b", "g");
+
   /** Basic normalization: lowercase, unify quotes, strip punctuation, collapse spaces. */
   function basic(s) {
     return String(s == null ? "" : s)
@@ -71,6 +78,7 @@
     if (!opts.strictForm) out = expandContractions(out);
     out = digitsToWords(out);
     out = out.replace(/'/g, "");
+    if (!opts.strictForm) out = out.replace(NO_APOSTROPHE, m => NO_APOSTROPHE_MAP[m]);
     return out.replace(/\s+/g, " ").trim();
   }
 
@@ -105,13 +113,29 @@
     }
     if (!opts.noTypos) {
       for (const a of list) {
-        const n = normalizeAnswer(a, opts);
-        if (n.replace(/ /g, "").length >= 5 && levenshtein(n, g) <= 1) {
-          return { ok: true, exact: false, near: true, matched: a };
-        }
+        if (isSpellingSlip(normalizeAnswer(a, opts), g)) return { ok: true, exact: false, near: true, matched: a };
       }
     }
     return { ok: false, exact: false, near: false, matched: null };
+  }
+
+  const GRAMMAR_SUFFIX = /^(s|es|d|ed|ing)$/;
+  /** True when two words differ only by a grammatical ending (works/work, lived/live) — never a "typo". */
+  function grammarVariant(a, b) {
+    const [s, l] = a.length <= b.length ? [a, b] : [b, a];
+    return l.startsWith(s) && GRAMMAR_SUFFIX.test(l.slice(s.length));
+  }
+  /**
+   * A forgivable spelling slip: exactly one word differs, that word has 6+ letters, it is within
+   * one edit of the expected word, and the difference is not a grammatical ending.
+   */
+  function isSpellingSlip(expected, given) {
+    const ew = expected.split(" "), gw = given.split(" ");
+    if (ew.length !== gw.length) return false;
+    const diff = ew.map((w, i) => [w, gw[i]]).filter(([x, y]) => x !== y);
+    if (diff.length !== 1) return false;
+    const [x, y] = diff[0];
+    return x.length >= 6 && levenshtein(x, y) <= 1 && !grammarVariant(x, y);
   }
 
   /**
@@ -149,5 +173,5 @@
     return checkTyped(chunks.join(" "), accepted, { noTypos: true, strictForm: true });
   }
 
-  return { basic, normalizeAnswer, expandContractions, numberToWords, levenshtein, checkTyped, matchSpeech, checkChunks };
+  return { basic, normalizeAnswer, expandContractions, numberToWords, levenshtein, isSpellingSlip, checkTyped, matchSpeech, checkChunks };
 });
