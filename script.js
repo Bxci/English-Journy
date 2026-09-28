@@ -122,6 +122,8 @@
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   const hasHebrew = s => /[֐-׿]/.test(String(s));
+  /** Some exercise answers embed a trailing Hebrew hint, e.g. "He doesn't eat meat. (לא)" — never speak that part. */
+  const stripAside = t => String(t).replace(/\s*\([^)]*[֐-׿][^)]*\)\s*$/, "").trim();
 
   /** Hebrew text with {English} segments -> HTML. English is wrapped in LTR <bdi>; tappable for audio unless noAudio. */
   function rich(text, opts) {
@@ -209,6 +211,8 @@
       window.speechSynthesis.onvoiceschanged = choose;
     },
     speak(text, slow) {
+      if (!text) return;
+      text = stripAside(text);
       if (!text) return;
       const wantSlow = !!(slow || state.settings.slowAudio);
       // Real recorded human voice beats synthesis whenever we have a clip for it, slow or not
