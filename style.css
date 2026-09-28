@@ -372,6 +372,22 @@ bdi.en, .en{ unicode-bidi: isolate; direction: ltr; font-weight:700; }
   .skill-row{ grid-template-columns: 76px 1fr; }
 }
 
+/* ---------- Tablet / wide screens: the small centered cards (welcome, onboarding, reward,
+   certificate, confirm dialog) get a bit more room instead of floating like a stretched phone card ---------- */
+@media (min-width: 700px){
+  .welcome-card{ max-width: 560px; padding: 44px 40px; }
+  .welcome-emoji{ font-size: 50px; }
+  .welcome-card h1{ font-size: 32px; }
+  .onb-card{ max-width: 600px; padding: 36px 32px; }
+  .onb-card h2{ font-size: 27px; }
+  .onb-options.minutes{ grid-template-columns: repeat(4, 1fr); }
+  .reward-card{ max-width: 520px; padding: 38px 30px; }
+  .certificate-card{ max-width: 540px; padding: 48px 32px; }
+  .modal-card{ max-width: 440px; }
+  .cefr-level{ font-size: 52px; }
+  .stats-grid{ grid-template-columns: repeat(4, 1fr); }
+}
+
 @media (prefers-reduced-motion: reduce){
   *, *::before, *::after{ animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 }
