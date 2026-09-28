@@ -304,24 +304,39 @@
   /** In-app confirmation dialog (native confirm() is unreliable in embedded/PWA browser contexts). */
   function askConfirm(message, yesLabel, noLabel) {
     const overlay = $("confirm-overlay");
+    const yesBtn = $("confirm-yes"), noBtn = $("confirm-no");
     $("confirm-message").textContent = message;
-    $("confirm-yes").textContent = yesLabel || "כן";
-    $("confirm-no").textContent = noLabel || "ביטול";
+    yesBtn.textContent = yesLabel || "כן";
+    noBtn.textContent = noLabel || "ביטול";
+    const trigger = document.activeElement;
     overlay.classList.remove("hidden");
     return new Promise(resolve => {
-      const done = ok => { overlay.classList.add("hidden"); cleanup(); resolve(ok); };
+      const done = ok => {
+        overlay.classList.add("hidden");
+        cleanup();
+        resolve(ok);
+        try { if (trigger && trigger.focus) trigger.focus(); } catch (e) { /* */ }
+      };
       const onYes = () => done(true);
       const onNo = () => done(false);
-      const onKey = e => { if (e.key === "Escape") done(false); };
+      // Focus trap: only the two buttons are reachable by Tab while the dialog is open (aria-modal
+      // alone tells assistive tech the background is inert, but doesn't stop physical Tab-key focus
+      // from leaving the dialog in every browser — this makes sure it actually can't).
+      const onKey = e => {
+        if (e.key === "Escape") { done(false); return; }
+        if (e.key !== "Tab") return;
+        e.preventDefault();
+        (document.activeElement === yesBtn ? noBtn : yesBtn).focus();
+      };
       function cleanup() {
-        $("confirm-yes").removeEventListener("click", onYes);
-        $("confirm-no").removeEventListener("click", onNo);
+        yesBtn.removeEventListener("click", onYes);
+        noBtn.removeEventListener("click", onNo);
         document.removeEventListener("keydown", onKey);
       }
-      $("confirm-yes").addEventListener("click", onYes);
-      $("confirm-no").addEventListener("click", onNo);
+      yesBtn.addEventListener("click", onYes);
+      noBtn.addEventListener("click", onNo);
       document.addEventListener("keydown", onKey);
-      try { $("confirm-no").focus(); } catch (e) { /* */ }
+      try { noBtn.focus(); } catch (e) { /* */ }
     });
   }
 
@@ -1457,14 +1472,18 @@
   function renderMissionStep() {
     const m = mission.m;
     const progress = MS.missionProgress(m, mission.doneSteps);
-    const checklist = '<ul class="mission-checklist">' + m.steps.map(s => '<li class="' + (mission.doneSteps.includes(s.id) ? "done" : "") + '">' + (mission.doneSteps.includes(s.id) ? "✅" : "⬜") + " " + esc(s.label) + "</li>").join("") + "</ul>";
+    const checklist = '<ul class="mission-checklist">' + m.steps.map(s => {
+      const done = mission.doneSteps.includes(s.id);
+      return '<li class="' + (done ? "done" : "") + '"><span aria-hidden="true">' + (done ? "✅" : "⬜") + "</span> " + esc(s.label) + '<span class="sr-only">' + (done ? " — הושלם" : " — עוד לא הושלם") + "</span></li>";
+    }).join("") + "</ul>";
     if (progress.complete) { finishMission(); return; }
     const step = progress.remaining[0];
     $("mission-body").innerHTML =
       '<p class="mission-intro">' + esc(m.intro) + "</p>" + checklist +
-      '<div class="mission-step-card"><div class="mission-step-label">' + esc(step.label) + '</div>' +
-      '<input id="mission-input" class="text-input" type="text" dir="ltr" lang="en" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="מה תגידי? (באנגלית)">' +
-      '<div id="mission-feedback" class="hint-line"></div>' +
+      '<div class="mission-step-card"><div class="mission-step-label" id="mission-step-label">' + esc(step.label) + '</div>' +
+      '<label class="sr-only" for="mission-input">מה תגידי? (באנגלית)</label>' +
+      '<input id="mission-input" class="text-input" type="text" dir="ltr" lang="en" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="מה תגידי? (באנגלית)" aria-describedby="mission-step-label">' +
+      '<div id="mission-feedback" class="hint-line" role="status" aria-live="polite"></div>' +
       '<button class="btn btn-primary btn-block" id="mission-check">בדיקה</button>' +
       '<button class="btn btn-ghost small" id="mission-hint">רמז</button></div>';
     const submit = () => {
