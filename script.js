@@ -1583,6 +1583,11 @@
      ============================================================ */
   initWelcomeScreen();
   showScreen("screen-welcome");
+  // Offline/installable PWA support (app shell + on-demand audio caching, see sw.js). Feature-
+  // detected and best-effort: registration failure (e.g. served over file://) never blocks the app.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => { /* ignore */ }); });
+  }
   // debugging aid (inspect from the browser console)
   /** Dev-only: explains the adaptive engine's current picks. Never surfaced in learner-facing UI. */
   function adaptiveDebug() {
