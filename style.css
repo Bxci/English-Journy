@@ -327,10 +327,6 @@ bdi.en, .en{ unicode-bidi: isolate; direction: ltr; font-weight:700; }
 .set-row{ display:flex; justify-content: space-between; align-items:center; gap: 10px; min-height: var(--tap); font-size: 15px; }
 .set-row input[type=checkbox]{ width: 24px; height: 24px; }
 .set-row select{ min-height: var(--tap); border-radius: 10px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); padding: 0 10px; font-size: 15px; }
-.text-input{ width:100%; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); margin-bottom: 8px; font-size: 15px; }
-.text-input:focus{ outline:none; border-color: var(--primary); }
-.acc-error{ color: var(--bad); min-height: 0; }
-.acc-error:empty{ display:none; }
 
 /* ---------- Reward / interstitial ---------- */
 #screen-reward.active, #screen-interstitial.active{ align-items:center; justify-content:center; padding:24px 16px; text-align:center; }
