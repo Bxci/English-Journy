@@ -665,13 +665,63 @@
       { err: "He have to work today.", a: "He has to work today.", o: ["He must to work today."], why: "עם {he} ← {has to}." },
     ] });
 
-  // A2 planned concepts (lesson skeletons exist; content to be written)
-  [
-    ["adverbs-manner", "תארי פועל: quickly, slowly, well", ["present-simple-he-she-it", "comparatives"], "תואר הפועל מתאר **איך** עושים משהו. לרוב מוסיפים {-ly} לשם התואר: {slow} ← {slowly}. יוצא דופן: {good} ← {well}. {She drives slowly}."],
-    ["object-pronouns", "כינויי מושא: me, him, her, us, them", ["subject-pronouns", "word-order-svo"], "אחרי פועל או מילת יחס משתמשים בצורה אחרת: {I} ← {me}, {he} ← {him}, {she} ← {her}, {we} ← {us}, {they} ← {them}. {Call me}. {I love them}."],
-    ["infinitives", "רוצה ל...: want to / need to / would like to", ["would-like", "present-simple-questions"], "אחרי פעלים כמו {want}, {need}, {would like}, {decide} בא {to} + פועל בסיס: {I want to travel}. {She needs to rest}."],
-    ["gerunds-beginner", "אוהבת לעשות: like / love / hate + ing", ["present-continuous-form", "infinitives"], "אחרי {like}, {love}, {hate}, {enjoy} אפשר להוסיף פועל עם {-ing}: {I love cooking}. {She enjoys swimming}."],
-    ["present-perfect-ever-never", "ניסיון בחיים: ever / never", ["past-irregular-3", "past-simple-negative-questions"], "{have/has} + צורת פועל שלישית מתארת ניסיון בחיים, בלי זמן מדויק: {Have you ever been to London?} — {No, I've never been there.}"],
-    ["present-perfect-already-yet", "כבר ועדיין: already / yet", ["present-perfect-ever-never"], "{already} = כבר (חיובי): {I've already eaten}. {yet} = עדיין / כבר (בשלילה ובשאלה, בסוף המשפט): {Have you finished yet?} {I haven't finished yet}."],
-  ].forEach(([id, title, pre, explanation]) => def({ id, level: "a2", title, prerequisites: pre, explanation, examples: [], commonMistakes: [], remediation: null, planned: true, drill: [] }));
+  def({ id: "adverbs-manner", level: "a2", title: "תארי פועל: quickly, slowly, well", prerequisites: ["present-simple-he-she-it", "comparatives"],
+    explanation: "תואר הפועל מתאר **איך** עושים משהו. לרוב מוסיפים {-ly} לשם התואר: {slow} ← {slowly}. אם שם התואר נגמר ב-{y}, הופכים ל-{i} ומוסיפים {-ly}: {easy} ← {easily}. יוצא דופן חשוב: {good} ← {well} (לא {goodly}!). {She drives slowly}. {He speaks English well}.",
+    examples: [["She drives slowly.", "היא נוהגת לאט."], ["He speaks English well.", "הוא מדבר אנגלית טוב."], ["They work quickly.", "הם עובדים מהר."]],
+    commonMistakes: ["{She drives slow} ← {She drives slowly}.", "{He speaks English good} ← {He speaks English well}.", "לשכוח {-ly}: {He runs quick} ← {He runs quickly}."],
+    remediation: "a2-adverbs",
+    vary: rng => { const x = pick(rng, [["quiet", "quietly"], ["careful", "carefully"], ["happy", "happily"], ["easy", "easily"], ["quick", "quickly"], ["slow", "slowly"]]); return { fill: "She speaks very ___. (" + x[0] + ")", a: x[1], o: [x[0]], why: "תואר הפועל: {" + x[0] + "} ← {" + x[1] + "}." }; },
+    drill: [
+      { err: "He speaks English good.", a: "He speaks English well.", o: ["He speaks English goodly."], why: "{good} ← {well}, לא {goodly}." },
+    ] });
+
+  def({ id: "object-pronouns", level: "a2", title: "כינויי מושא: me, him, her, us, them", prerequisites: ["subject-pronouns", "word-order-svo"],
+    explanation: "אחרי פועל או מילת יחס ({to}, {for}, {with}...) משתמשים בכינוי מושא, לא בכינוי גוף: {I} ← {me}, {he} ← {him}, {she} ← {her}, {we} ← {us}, {they} ← {them}. {it} ו-{you} נשארים אותו דבר. {Call me}. {I love them}. {Give it to her}.",
+    examples: [["Call me later.", "תתקשרי אליי אחר כך."], ["I love them.", "אני אוהבת אותם."], ["Give it to her.", "תני לה את זה."]],
+    commonMistakes: ["{Call I} ← {Call me}.", "{I love they} ← {I love them}.", "{Give it to she} ← {Give it to her}."],
+    remediation: "a2-objpron",
+    vary: rng => { const x = pick(rng, [["I", "me", "Call ___ tomorrow."], ["he", "him", "I saw ___ yesterday."], ["she", "her", "Give the book to ___."], ["we", "us", "Come with ___."], ["they", "them", "I sent ___ an email."]]); return { fill: x[2], a: x[1], o: [x[0]], why: "אחרי פועל / מילת יחס: {" + x[0] + "} ← {" + x[1] + "}." }; },
+    drill: [
+      { err: "Call I tomorrow.", a: "Call me tomorrow.", o: ["Call my tomorrow."], why: "אחרי פועל ← כינוי מושא: {me}." },
+    ] });
+
+  def({ id: "infinitives", level: "a2", title: "רוצה ל...: want to / need to / would like to", prerequisites: ["would-like", "present-simple-questions"],
+    explanation: "אחרי פעלים כמו {want}, {need}, {would like}, {decide}, {hope} בא {to} + פועל בסיס (בלי s, בלי ing): {I want to travel}. {She needs to rest}. עם he/she הפועל הראשון מקבל s, אבל הפועל שאחרי {to} נשאר בסיס: {She needs to rest}, לא {She needs to rests}.",
+    examples: [["I want to travel.", "אני רוצה לטייל."], ["She needs to rest.", "היא צריכה לנוח."], ["We would like to order.", "היינו רוצים להזמין."]],
+    commonMistakes: ["{I want travel} ← {I want to travel}.", "{She need to rest} ← {She needs to rest}.", "{I want traveling} ← {I want to travel}."],
+    remediation: "a2-inf",
+    vary: rng => { const x = pick(rng, [["I", "want", "travel"], ["She", "needs", "rest"], ["We", "need", "go home"], ["He", "wants", "learn English"], ["They", "would like", "order now"]]); return { build: x[0] + " " + x[1] + " to " + x[2] + ".", he: "", why: "{" + x[1] + "} + {to} + פועל בסיס: {to " + x[2] + "}." }; },
+    drill: [
+      { err: "I want travel to Italy.", a: "I want to travel to Italy.", o: ["I want traveling to Italy."], why: "{want} + {to} + פועל בסיס." },
+    ] });
+
+  def({ id: "gerunds-beginner", level: "a2", title: "אוהבת לעשות: like / love / hate + ing", prerequisites: ["present-continuous-form", "infinitives"],
+    explanation: "אחרי {like}, {love}, {hate}, {enjoy} אפשר להוסיף פועל עם {-ing} (לא {to} + פועל): {I love cooking}. {She enjoys swimming}. שימו לב לכתיב: לפעמים מכפילים עיצור ({swim} ← {swimming}) או מורידים {e} ({dance} ← {dancing}).",
+    examples: [["I love cooking.", "אני אוהבת לבשל."], ["She enjoys swimming.", "היא נהנית לשחות."], ["He hates waiting.", "הוא שונא לחכות."]],
+    commonMistakes: ["{I love cook} ← {I love cooking}.", "{She enjoys to swim} ← {She enjoys swimming}.", "כתיב: {swiming} ← {swimming} (הכפלת עיצור)."],
+    remediation: "a2-gerund",
+    vary: rng => { const x = pick(rng, [["I", "love", "cook", "cooking"], ["She", "enjoys", "dance", "dancing"], ["He", "hates", "wait", "waiting"], ["We", "like", "travel", "traveling"], ["They", "love", "read", "reading"]]); return { fill: x[0] + " " + x[1] + " ___. (" + x[2] + ")", a: x[3], o: [x[2]], why: "אחרי {" + x[1] + "} ← {-ing}: {" + x[3] + "}." }; },
+    drill: [
+      { err: "I love to cook every day.", a: "I love cooking every day.", o: ["I love cook every day."], why: "אחרי {love} אפשר {-ing}: {cooking}." },
+    ] });
+
+  def({ id: "present-perfect-ever-never", level: "a2", title: "ניסיון בחיים: ever / never", prerequisites: ["past-irregular-3", "past-simple-negative-questions"],
+    explanation: "{have/has} + צורת פועל שלישית (Past Participle) מתארת ניסיון בחיים, בלי זמן מדויק: {Have you ever been to London?} — {No, I've never been there.} {ever} בשאלות = \"אי פעם\", {never} = \"אף פעם לא\". עם he/she: {has}.",
+    examples: [["Have you ever been to London?", "היית פעם בלונדון?"], ["I have never tried sushi.", "מעולם לא ניסיתי סושי."], ["She has visited Paris twice.", "היא ביקרה בפריז פעמיים."]],
+    commonMistakes: ["{I have never went} ← {I have never been}.", "{Did you ever go there?} ← {Have you ever been there?} (בהקשר של ניסיון כללי).", "לשכוח {have/has}: {I never been there} ← {I have never been there}."],
+    remediation: "a2-pp-1",
+    vary: rng => { const x = pick(rng, [["you", "eaten sushi", "Have ___ ever eaten sushi?"], ["she", "been to Paris", "Has ___ ever been to Paris?"], ["they", "tried surfing", "Have ___ ever tried surfing?"]]); return { fill: x[2].replace("___", "___"), a: x[0], o: [x[0] === "she" ? "her" : x[0] + "s"], why: "שאלה עם {ever}: {Have/Has} + נושא + {ever} + פועל שלישי." }; },
+    drill: [
+      { err: "I never been to London.", a: "I have never been to London.", o: ["I never was to London."], why: "צריך {have}: {I have never been}." },
+    ] });
+
+  def({ id: "present-perfect-already-yet", level: "a2", title: "כבר ועדיין: already / yet", prerequisites: ["present-perfect-ever-never"],
+    explanation: "{already} = כבר, במשפט חיובי, בדרך כלל לפני הפועל השלישי: {I've already eaten}. {yet} = עדיין / כבר, בשלילה ובשאלה, בסוף המשפט: {Have you finished yet?} {I haven't finished yet}. אי אפשר לערבב ביניהם באותו משפט.",
+    examples: [["I've already eaten.", "כבר אכלתי."], ["Have you finished yet?", "סיימת כבר?"], ["I haven't finished yet.", "עדיין לא סיימתי."]],
+    commonMistakes: ["{I have finished already yet} ← לבחור אחד בלבד.", "{already} בסוף שאלה שלילית — לרוב {yet} מתאים שם יותר.", "לשכוח ' ב-{I've} ({I have})."],
+    remediation: "a2-pp-2",
+    vary: rng => { const x = pick(rng, [["eaten", "I've already ___.", "already"], ["called her", "I've already ___.", "already"], ["finished", "Have you ___ yet?", "yet"]]); return { fill: x[1].replace("___", x[0]), a: x[2], o: [x[2] === "already" ? "yet" : "already"], why: "{already} = חיובי, {yet} = שלילה/שאלה." }; },
+    drill: [
+      { err: "I have finished already yet.", a: "I have already finished.", o: ["I have finished yet already."], why: "רק אחד: {already} או {yet}, לא שניהם." },
+    ] });
 })(typeof globalThis !== "undefined" ? globalThis : this);

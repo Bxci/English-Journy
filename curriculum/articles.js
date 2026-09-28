@@ -113,5 +113,80 @@
         ],
       ],
     },
+    {
+      id: "morning-routine",
+      emoji: "🌅",
+      title: "שגרת בוקר בריאה",
+      minutes: 3,
+      level: "a1",
+      vocab: ["routine", "energy", "focus", "grateful"],
+      paragraphs: [
+        [
+          ["A good morning routine can change your day.", "שגרת בוקר טובה יכולה לשנות את היום שלך."],
+          ["Wake up a little earlier than you need to.", "תתעוררי קצת יותר מוקדם ממה שאת צריכה."],
+          ["Drink a glass of water first.", "שתי כוס מים קודם כל."],
+        ],
+        [
+          ["Move your body for a few minutes.", "תזיזי את הגוף שלך כמה דקות."],
+          ["A short walk or stretch gives you energy.", "הליכה קצרה או מתיחה נותנות לך אנרגיה."],
+          ["Eat a real breakfast, not just coffee.", "תאכלי ארוחת בוקר אמיתית, לא רק קפה."],
+        ],
+        [
+          ["Write down one thing you are grateful for.", "כתבי דבר אחד שאת אסירת תודה עליו."],
+          ["It helps you focus on what is good.", "זה עוזר לך להתמקד במה שטוב."],
+          ["Small habits make a big difference.", "הרגלים קטנים עושים הבדל גדול."],
+        ],
+      ],
+    },
+    {
+      id: "handling-stress",
+      emoji: "🧘",
+      title: "איך מתמודדים עם לחץ",
+      minutes: 3,
+      level: "a2",
+      vocab: ["stress", "breathe", "calm", "overwhelmed"],
+      paragraphs: [
+        [
+          ["Everyone feels stress sometimes.", "כולם מרגישים לחץ לפעמים."],
+          ["It is normal to feel overwhelmed.", "זה נורמלי להרגיש מוצפת."],
+          ["The important thing is how you respond.", "הדבר החשוב הוא איך את מגיבה."],
+        ],
+        [
+          ["When you feel stress, stop and breathe.", "כשאת מרגישה לחץ, תעצרי ותנשמי."],
+          ["Take a slow, deep breath in and out.", "קחי נשימה עמוקה ואיטית פנימה והחוצה."],
+          ["This helps your body feel calm again.", "זה עוזר לגוף שלך להרגיש רגוע שוב."],
+        ],
+        [
+          ["Talk to a friend when things feel hard.", "דברי עם חברה כשדברים מרגישים קשים."],
+          ["You do not have to handle everything alone.", "את לא חייבת להתמודד עם הכל לבד."],
+          ["Ask for help. It is a sign of strength.", "בקשי עזרה. זה סימן לחוזק."],
+        ],
+      ],
+    },
+    {
+      id: "traveling-alone",
+      emoji: "🧳",
+      title: "לטייל לבד — למה כדאי לנסות",
+      minutes: 4,
+      level: "a2",
+      vocab: ["confidence", "plan", "vacation", "grateful"],
+      paragraphs: [
+        [
+          ["Traveling alone can feel scary at first.", "לטייל לבד יכול להרגיש מפחיד בהתחלה."],
+          ["But it also builds real confidence.", "אבל זה גם בונה ביטחון עצמי אמיתי."],
+          ["You learn to trust your own decisions.", "את לומדת לבטוח בהחלטות שלך."],
+        ],
+        [
+          ["Start with a simple plan.", "התחילי עם תוכנית פשוטה."],
+          ["Choose one city for a short vacation.", "בחרי עיר אחת לחופשה קצרה."],
+          ["You can always change the plan later.", "תמיד אפשר לשנות את התוכנית אחר כך."],
+        ],
+        [
+          ["Talk to new people along the way.", "דברי עם אנשים חדשים בדרך."],
+          ["Every trip teaches you something new.", "כל טיול מלמד אותך משהו חדש."],
+          ["Be grateful for the freedom to explore.", "היי אסירת תודה על החופש לחקור."],
+        ],
+      ],
+    },
   ];
 })(typeof globalThis !== "undefined" ? globalThis : this);

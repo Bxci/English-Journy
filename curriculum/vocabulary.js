@@ -371,5 +371,14 @@
     ["trust", "לבטוח", "🤞", "I trust my best friend."],
     ["forgive", "לסלוח", "🕊️", "It is hard to forgive."],
     ["recharge", "להיטען מחדש", "🔋", "I recharge on the weekend."],
+    ["breathe", "לנשום", "🌬️", "Take a moment to breathe."],
+  ]);
+  add("reading", "a2", "noun", [
+    ["stress", "לחץ / מתח", "😣", "I feel a lot of stress at work."],
+    ["energy", "אנרגיה", "⚡", "I have a lot of energy in the morning."],
+    ["focus", "ריכוז", "🎯", "It is hard to focus today."],
+  ]);
+  add("reading", "a2", "adjective", [
+    ["calm", "רגועה", "🧘", "Take a deep breath and stay calm."],
   ]);
 })(typeof globalThis !== "undefined" ? globalThis : this);

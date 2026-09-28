@@ -30,9 +30,9 @@ test("coverage: required Pre-A1 / A1 / A2 topics exist as lessons", () => {
     "a1-ps-1", "a1-ps-2", "a1-ps-3", "a1-ps-4", "a1-ps-5", "a1-ps-6", "a1-ps-7", "a1-ps-8", "a1-ps-9",
     "a1-time", "a1-calendar", "a1-restaurant", "a1-directions", "a1-pc-1", "a1-pc-2",
     "a1-past-1", "a1-past-2", "a1-past-3", "a1-past-4", "a1-past-5", "a1-past-6", "a1-future-1", "a1-future-2", "a1-future-3",
-    "a2-comp", "a2-super", "a2-count", "a2-some", "a2-should", "a2-must"].forEach(id => assert.ok(ids.has(id), "missing lesson " + id));
-  const planned = C.lessons.filter(l => l.status === "planned").map(l => l.concepts[0]);
-  ["adverbs-manner", "object-pronouns", "infinitives", "gerunds-beginner", "present-perfect-ever-never", "present-perfect-already-yet"].forEach(c => assert.ok(planned.includes(c)));
+    "a2-comp", "a2-super", "a2-count", "a2-some", "a2-should", "a2-must",
+    "a2-adverbs", "a2-objpron", "a2-inf", "a2-gerund", "a2-pp-1", "a2-pp-2"].forEach(id => assert.ok(ids.has(id), "missing lesson " + id));
+  assert.equal(C.lessons.filter(l => l.status === "planned").length, 0, "no A2 lesson should still be a skeleton");
 });
 
 test("irregular past verbs are taught in small batches (<= 5 new per lesson)", () => {

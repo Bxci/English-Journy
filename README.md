@@ -47,7 +47,7 @@ tests/              node:test suites (+ optional jsdom DOM smoke test)
 **Course → Level (Pre-A1, A1, A2) → Unit → Lesson → Concept → Exercise**
 
 - **Vocabulary item** (`curriculum/vocabulary.js`): `{ id, word, translation, partOfSpeech, level, category, emoji, exampleSentence, alts?, note? }` — 416 items.
-- **Concept** (`curriculum/concepts.js`): grammar / functional point — `{ id, level, title, skill, prerequisites[], explanation (Hebrew), examples [[en, he]], commonMistakes[], remediation (lesson id), drill[], vary?(rng) }` — 61 with full content + 6 planned (A2).
+- **Concept** (`curriculum/concepts.js`): grammar / functional point — `{ id, level, title, skill, prerequisites[], explanation (Hebrew), examples [[en, he]], commonMistakes[], remediation (lesson id), drill[], vary?(rng) }` — 67, all with full content.
 - **Lesson** (`curriculum/pre-a1.js`, `a1.js`, `a2.js`): `{ id, title, objective, pre (prerequisite lesson ids), concepts (taught), practices (reviewed), vocab (new words), reviewVocab, notes, exercises[], status? }`. `course.js` flattens units into `CURRICULUM.lessons`, sets `level`/`unit`, and resolves `prerequisites` (explicit `pre`, otherwise the previous lesson in course order).
 - **Conversation scenario** (`curriculum/conversations.js`): scripted dialogue tree (see §8).
 
@@ -77,7 +77,7 @@ tests/              node:test suites (+ optional jsdom DOM smoke test)
 | A2 | ⚖️ comparison | comparatives · superlatives |
 | A2 | 🧮 quantity | countable/uncountable · some/any · much/many/a lot of |
 | A2 | 🧭 advice & obligation | should · must / have to (mustn't vs don't have to) |
-| A2 | 🛠️ planned | adverbs of manner · object pronouns · infinitives · beginner gerunds · present perfect ever/never · already/yet — **ids, prerequisites, objectives and concept explanations only; no exercises yet; shown as "בהכנה" and never unlockable** |
+| A2 | 🛠️ more grammar | adverbs of manner · object pronouns · infinitives (want/need to) · beginner gerunds (love -ing) · present perfect ever/never · present perfect already/yet |
 
 ### 3.3 Adding content
 
@@ -262,7 +262,6 @@ The validator checks unique ids; valid level/title/objective; prerequisites and 
 | Pronunciation / accent scoring | Browser speech recognition only returns text | A pronunciation-assessment service (server-side) |
 | Guaranteed speech recognition | Browser-dependent (not Firefox; Chrome needs network) | Server-side STT |
 | Deployment | None exists in this environment | Any static host works as-is |
-| A2 lessons beyond the first 7 | Six A2 lessons are skeletons (ids, prerequisites, objectives, concept explanations) | Author exercises in `curriculum/a2.js`, remove `status: "planned"`, run `npm run validate` |
 
 **Highest-value next milestone if infrastructure becomes available:** a tiny backend with auth + a synced progress document (so the learner can't lose progress and can switch devices), then a server-side, level-constrained LLM conversation partner that reuses this curriculum's per-lesson vocabulary/grammar as its guardrails.
 

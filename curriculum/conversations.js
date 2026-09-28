@@ -186,4 +186,22 @@
         { en: "Thanks. I should resting.", bad: true, why: "{should} + בסיס: {I should rest}.", concept: "modal-should" } ] },
       end: { npc: "Feel better soon!", he: "תרגישי טוב!", end: true },
     } });
+
+  S({ id: "conv-plans", title: "לתכנן משהו ביחד", icon: "📅", level: "a2", requires: ["a2-inf", "a2-gerund", "a2-objpron"], goals: ["conversation", "general"],
+    intro: "חברה מציעה לך לעשות משהו בסוף השבוע.",
+    start: "n1", nodes: {
+      n1: { npc: "Do you want to do something this weekend?", he: "את רוצה לעשות משהו בסוף השבוע?", choices: [
+        { en: "Yes! I would like to go hiking.", next: "n2" },
+        { en: "Sure, I love cooking together.", next: "n2" },
+        { en: "Yes, I want going hiking.", bad: true, why: "{want} + {to} + פועל בסיס: {want to go}.", concept: "infinitives" } ] },
+      n2: { npc: "Great! What do you enjoy doing on weekends?", he: "מעולה! ממה את נהנית לעשות בסופי שבוע?", choices: [
+        { en: "I enjoy reading and relaxing.", next: "n3" },
+        { en: "I love traveling to new places.", next: "n3" },
+        { en: "I enjoy to read and relax.", bad: true, why: "אחרי {enjoy} ← {-ing}: {enjoy reading}.", concept: "gerunds-beginner" } ] },
+      n3: { npc: "Sounds good. Should I call you tomorrow?", he: "נשמע טוב. שאתקשר אליך מחר?", choices: [
+        { en: "Yes, please call me in the morning.", next: "end" },
+        { en: "Sure, call me anytime.", next: "end" },
+        { en: "Yes, please call I in the morning.", bad: true, why: "אחרי פועל ← כינוי מושא: {call me}.", concept: "object-pronouns" } ] },
+      end: { npc: "Perfect, see you this weekend!", he: "מושלם, נתראה בסוף השבוע!", end: true },
+    } });
 })(typeof globalThis !== "undefined" ? globalThis : this);
