@@ -84,8 +84,16 @@
     return defaultState();
   }
 
+  let saveFailedWarned = false;
   function saveState() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      if (!saveFailedWarned) {
+        saveFailedWarned = true;
+        toast("⚠️ לא הצלחנו לשמור את ההתקדמות (אין מקום אחסון פנוי או שהדפדפן חוסם שמירה). נסי לפנות מקום או לצאת ממצב גלישה פרטית.", 6000);
+      }
+    }
   }
 
   let state = loadState();
@@ -147,6 +155,10 @@
     },
     speak(text, slow) {
       if (!this.supported || !text) return;
+      if (!this.voice) {
+        const vs = window.speechSynthesis.getVoices();
+        if (vs.length) this.voice = vs.find(v => /en[-_]US/i.test(v.lang) && /Google|Samantha|Microsoft/i.test(v.name)) || vs.find(v => /^en[-_]/i.test(v.lang)) || null;
+      }
       try {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
@@ -1175,15 +1187,25 @@
     saveState();
     const review = chat.mistakes.length
       ? '<h3>מה אפשר לשפר</h3><ul class="convo-review">' + chat.mistakes.map(m =>
-        "<li><div><b>מה בחרת:</b> " + enSpan(m.picked) + "</div><div><b>בחירה טובה יותר:</b> " + enSpan(m.better) + sayButtons(m.better) + "</div><div><b>למה:</b> " + rich(m.why) + '</div><div class="concept-link">נושא: ' + rich(conceptById[m.concept].title, { noAudio: true }) + "</div></li>").join("") + "</ul>"
+        "<li><div><b>מה בחרת:</b> " + enSpan(m.picked) + "</div><div><b>בחירה טובה יותר:</b> " + enSpan(m.better) + sayButtons(m.better) + "</div><div><b>למה:</b> " + rich(m.why) + (conceptById[m.concept] ? '<div class="concept-link">נושא: ' + rich(conceptById[m.concept].title, { noAudio: true }) + "</div>" : "") + "</li>").join("") + "</ul>"
       : '<p class="reward-message">בלי אף טעות! 🌟</p>';
-    const weak = Array.from(new Set(chat.mistakes.map(m => m.concept)))[0];
+    const weak = Array.from(new Set(chat.mistakes.map(m => m.concept))).find(c => conceptById[c]);
     const buttons = [{ label: "חזרה לשיחות", run: goConvos }, { label: "לשיחה שוב", run: () => startConversation(s) }];
     if (weak) buttons.unshift({ label: "לתרגל את «" + plainOf(conceptById[weak].title) + "»", run: () => startRemediation(weak) });
     interstitial('<div class="reward-burst" aria-hidden="true">💬</div><h2>השיחה הסתיימה!</h2>' + review, buttons);
   }
 
-  $("btn-chat-exit").addEventListener("click", () => { if (confirm("לצאת מהשיחה?")) { applySessionToSrs(); session = null; saveState(); goConvos(); } });
+  $("btn-chat-exit").addEventListener("click", () => {
+    if (!confirm("לצאת מהשיחה?")) return;
+    applySessionToSrs();
+    session = null;
+    if (chat) {
+      addStudyTime((now() - chat.start) / 1000);
+      markStudiedToday();
+    }
+    saveState();
+    goConvos();
+  });
 
   /* ============================================================
      Progress
@@ -1199,7 +1221,7 @@
     const timeStr = mins < 60 ? mins + " דקות" : (Math.round(mins / 6) / 10) + " שעות";
     const certs = Object.keys(state.certificates);
     const levelRows = C.levels.map(l => { const ls = realLessons.filter(x => x.level === l.id); const done = ls.filter(x => (state.lessons[x.id] || {}).completed).length; const skipped = ls.filter(x => !(state.lessons[x.id] || {}).completed && (state.lessons[x.id] || {}).placedOut).length;
-      return '<div class="lvl-row"><span dir="ltr">' + l.title + '</span><span class="progress-bar-outer"><span class="progress-bar-inner" style="width:' + Math.round((done / ls.length) * 100) + '%"></span></span><span>' + done + "/" + ls.length + (skipped ? " · דילגת על " + skipped : "") + "</span></div>"; }).join("");
+      return '<div class="lvl-row"><span dir="ltr">' + l.title + '</span><span class="progress-bar-outer"><span class="progress-bar-inner" style="width:' + (ls.length ? Math.round((done / ls.length) * 100) : 0) + '%"></span></span><span>' + done + "/" + ls.length + (skipped ? " · דילגת על " + skipped : "") + "</span></div>"; }).join("");
     $("progress-body").innerHTML =
       '<div class="cefr-card"><div class="cefr-label">הרמה שלך עכשיו</div><div class="cefr-level" dir="ltr">' + LEVEL_NAME[lv] + "</div>" + levelRows + "</div>" +
       '<div class="stats-grid"><div><b>' + state.streak + "</b><span>ימי רצף 🔥</span></div><div><b>" + timeStr + "</b><span>זמן למידה ⏱️</span></div><div><b>" + words + "</b><span>מילים שלמדת 📚</span></div><div><b>" + Object.values(state.conversations).reduce((s, c) => s + (c.runs || 0), 0) + "</b><span>שיחות 💬</span></div></div>" +

@@ -67,8 +67,9 @@
     }
     const convo = input.conversationAvailable && total >= 20 ? Math.min(5, Math.round(total * 0.2)) : 0;
     if (input.hasLesson) {
-      chunks.push({ kind: "lesson", minutes: Math.max(5, left - convo) });
-      left -= Math.max(5, left - convo);
+      const lessonMinutes = Math.max(5, Math.min(left - convo, left));
+      chunks.push({ kind: "lesson", minutes: lessonMinutes });
+      left -= lessonMinutes;
     }
     if (convo && left > 0) chunks.push({ kind: "conversation", minutes: left });
     else if (!input.hasLesson && left > 0) chunks.push({ kind: "practice", minutes: left });
