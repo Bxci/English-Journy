@@ -13,7 +13,7 @@
   caches are deleted on activate. The audio cache is versioned separately since clip content
   doesn't change on every deploy.
 */
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = "ej-shell-" + CACHE_VERSION;
 const AUDIO_CACHE = "ej-audio-v1";
 
