@@ -47,7 +47,7 @@
       articlesRead: {},   // articleId -> { at }
       missions: {},       // missionId -> { completedAt, stepsDone: [stepId,...], attempts }
       certificates: {},   // level -> date
-      daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0 },
+      daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0, xp: 0 },
       history: [],         // archived daily records (last ~60 days) for the Weekly Progress summary
       totalSpoken: 0,      // lifetime count of correctly-answered speaking exercises (for the "first sentence" badge)
       time: { totalSeconds: 0 },
@@ -111,7 +111,7 @@
     const t = todayStr();
     if (state.daily.date !== t) {
       if (state.daily.date) state.history = (state.history || []).concat([state.daily]).slice(-60);
-      state.daily = { date: t, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0 };
+      state.daily = { date: t, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0, xp: 0 };
     }
   }
 
@@ -613,6 +613,21 @@
     });
   }
 
+  /** Home hero: big streak number, last-7-days strip, and today's XP vs. lifetime XP. */
+  function renderStreakCard() {
+    const studied = new Set((state.history || []).concat([state.daily]).filter(d => d && d.seconds > 0).map(d => d.date));
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const x = new Date(); x.setDate(x.getDate() - i);
+      days.push({ label: ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"][x.getDay()], on: studied.has(todayStr(x)), today: i === 0 });
+    }
+    $("streak-num").textContent = state.streak;
+    $("streak-sub").textContent = state.streak > 0 ? (state.lastPlayedDate === todayStr() ? "ימי רצף — היום כבר בפנים! 🎉" : "ימי רצף — תרגלי היום כדי לשמור עליו") : "התחילי רצף חדש היום";
+    $("streak-week").innerHTML = days.map(d => '<li class="' + (d.on ? "on " : "") + (d.today ? "today" : "") + '"><span class="day-dot" aria-hidden="true">' + (d.on ? "🔥" : "") + "</span><span>" + d.label + (d.on ? '<span class="sr-only"> תרגלת</span>' : "") + "</span></li>").join("");
+    $("xp-today").textContent = state.daily.xp || 0;
+    $("xp-total").textContent = state.stars;
+  }
+
   function goHome() {
     rollDaily();
     const hour = new Date().getHours();
@@ -620,6 +635,7 @@
     $("home-greeting").textContent = hello + ", " + state.userName + " 👋";
     $("stat-streak").textContent = state.streak;
     $("stat-stars").textContent = state.stars;
+    renderStreakCard();
     const f = goalFlavor();
     $("home-flavor").textContent = f ? f.icon + " " + f.flavor : "";
     const plan = buildPlan();
@@ -926,7 +942,7 @@
     rollDaily();
     state.daily.lessonsDone++;
     const starsEarned = Math.max(1, Math.round(score * 5));
-    state.stars += starsEarned;
+    state.stars += starsEarned; rollDaily(); state.daily.xp = (state.daily.xp || 0) + starsEarned;
     state.giftsOpened += 1;
     saveState();
 
@@ -1511,7 +1527,7 @@
     markStudiedToday();
     const already = !!(state.missions[m.id] && state.missions[m.id].completedAt);
     state.missions[m.id] = { stepsDone: mission.doneSteps.slice(), attempts: mission.attempts, completedAt: now() };
-    if (!already) { state.stars += 3; }
+    if (!already) { state.stars += 3; rollDaily(); state.daily.xp = (state.daily.xp || 0) + 3; }
     saveState();
     const newlyUnlocked = checkBadges();
     mission = null;
