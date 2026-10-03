@@ -670,3 +670,53 @@ h1,h2{ letter-spacing:-.2px; }
 #btn-article-done{ background: var(--good); box-shadow:0 5px 0 var(--good-edge); }
 #btn-article-done:hover{ box-shadow:0 5px 0 var(--good-edge); }
 #btn-article-done:active{ box-shadow:0 1px 0 var(--good-edge); }
+
+/* ---------- Progress screen (Duolingo-style profile) ---------- */
+.progress-body{ display:flex; flex-direction:column; gap:0; padding-bottom:24px; }
+.cefr-card{ background: var(--primary); border:none; box-shadow:0 6px 0 var(--primary-edge); color:#fff; border-radius: var(--radius); padding:20px 16px 16px; }
+.cefr-label{ color: rgba(255,255,255,.85); font-weight:800; font-size:14px; }
+.cefr-level{ color:#fff; font-size:34px; line-height:1.3; margin-bottom:14px; }
+.cefr-card .lvl-row{ color:#fff; font-weight:700; }
+.cefr-card .progress-bar-outer{ background: rgba(255,255,255,.28); }
+.cefr-card .progress-bar-inner{ background:#ffc93c; }
+.cefr-card .progress-bar-inner::after{ background: rgba(255,255,255,.5); }
+
+/* stat tiles: each one has its own accent, like Duolingo's profile stats */
+.stats-grid{ gap:12px; margin-top:20px; }
+.stats-grid div{ flex-direction:column; align-items:center; gap:2px; border-width:2px; border-bottom-width:4px; border-radius:16px; padding:14px 8px; }
+.stats-grid div:nth-child(1){ border-color: var(--accent); } .stats-grid div:nth-child(1) b{ color:#e07a2a; }
+.stats-grid div:nth-child(2){ border-color:#4aa8ff; } .stats-grid div:nth-child(2) b{ color:#2b86d9; }
+.stats-grid div:nth-child(3){ border-color: var(--good); } .stats-grid div:nth-child(3) b{ color: var(--good-edge); }
+.stats-grid div:nth-child(4){ border-color: var(--primary); } .stats-grid div:nth-child(4) b{ color: var(--primary); }
+.stats-grid b{ font-size:26px; font-family:"Baloo 2","Heebo",sans-serif; }
+.stats-grid span{ font-weight:700; }
+.sec-title{ font-size:20px; font-weight:800; margin:28px 0 12px; }
+
+/* weekly card & skills: thick coloured bars */
+.week-card{ border-color: var(--line); }
+.week-grid b{ font-size:24px; font-family:"Baloo 2","Heebo",sans-serif; }
+.skill-row{ grid-template-columns:96px 1fr; }
+.skill-row .progress-bar-outer{ height:14px; }
+.skill-row:nth-child(5n+1) .progress-bar-inner{ background: var(--primary); }
+.skill-row:nth-child(5n+2) .progress-bar-inner{ background:#4aa8ff; }
+.skill-row:nth-child(5n+3) .progress-bar-inner{ background: var(--accent); }
+.skill-row:nth-child(5n+4) .progress-bar-inner{ background: var(--good); }
+.skill-row:nth-child(5n+5) .progress-bar-inner{ background:#ff5d9e; }
+.skill-name{ font-weight:800; }
+
+/* mastery map rows & chips */
+.mastery-row{ border-bottom-width:4px; }
+.rem-list .chip{ background: var(--card); }
+
+/* achievements: grid of badge tiles; locked ones are grey */
+.badges{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.badge{ border-radius:16px; border:2px solid var(--line); border-bottom-width:4px; padding:12px 12px; font-weight:800; font-size:14px; opacity:1; filter:grayscale(1); color: var(--ink-soft); background: var(--bg); }
+.badge > span[aria-hidden]{ font-size:26px; }
+.badge.on{ filter:none; color: var(--ink); background: var(--card); border-color: var(--star); box-shadow:none; }
+
+/* settings: grouped list rows */
+.settings{ gap:0; padding:6px 14px 14px; }
+.set-row{ padding:8px 0; border-bottom:2px solid var(--line); font-weight:700; }
+.settings .btn-ghost{ margin-top:10px; }
+.set-row input[type=checkbox]{ accent-color: var(--primary); }
+.set-row select{ max-width:58%; min-width:0; text-overflow:ellipsis; }
