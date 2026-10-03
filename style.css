@@ -747,3 +747,16 @@ h1,h2{ letter-spacing:-.2px; }
 .chip{ padding:12px 18px; font-size:15px; }
 
 @media (prefers-reduced-motion: reduce){ .welcome-emoji{ animation:none; } }
+
+/* ---------- Mission screen polish ---------- */
+.mission-checklist li{ display:flex; align-items:center; gap:12px; font-weight:700; font-size:15px; border-bottom-width:4px; padding:12px 14px; }
+.mission-checklist li > span[aria-hidden]{ font-size:0; flex-shrink:0; width:28px; height:28px; border-radius:50%; border:3px solid var(--line); background: var(--bg); display:inline-flex; align-items:center; justify-content:center; }
+.mission-checklist li.done{ opacity:1; text-decoration:none; color: var(--ink-soft); }
+.mission-checklist li.done > span[aria-hidden]{ background: var(--good); border-color: var(--good); }
+.mission-checklist li.done > span[aria-hidden]::after{ content:"✓"; font-size:16px; font-weight:800; color:#fff; }
+.mission-step-card{ border-bottom-width:5px; }
+.text-input,#mission-input{ width:100%; border:2px solid var(--line); border-bottom-width:4px; border-radius:16px; padding:14px 16px; font-size:17px; font-family:inherit; background: var(--bg); color: var(--ink); margin-bottom:12px; }
+#mission-input:focus,.text-input:focus{ outline:none; border-color: var(--primary); }
+.chat-type-row .text-input{ margin-bottom:0; width:auto; }
+.mission-step-card #mission-hint{ width:100%; }
+.xp-box small{ white-space:nowrap; font-size:11px; }
