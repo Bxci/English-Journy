@@ -471,6 +471,23 @@
     { id: "conversation", label: "אני מסתדרת בשיחה בסיסית", sub: "כנראה A1–A2 — בדיקה קצרה תעזור לדייק", start: "a1", offerTest: true },
   ];
 
+  /** Adds a Duolingo-style progress bar above each onboarding step (derived from the "שלב N מתוך M" label). */
+  (function decorateOnboarding() {
+    const body = $("onb-body");
+    if (!body || !window.MutationObserver) return;
+    new MutationObserver(() => {
+      if (body.querySelector(".onb-progress")) return;
+      const m = (body.querySelector(".onb-step") || {}).textContent;
+      const n = m && m.match(/(\d+)\D+(\d+)/);
+      if (!n) return;
+      const bar = document.createElement("div");
+      bar.className = "onb-progress progress-bar-outer";
+      bar.setAttribute("aria-hidden", "true");
+      bar.innerHTML = '<span class="progress-bar-inner" style="width:' + Math.round((Number(n[1]) / Number(n[2])) * 100) + '%"></span>';
+      body.insertBefore(bar, body.firstChild);
+    }).observe(body, { childList: true });
+  })();
+
   function startOnboarding() { onbStepLevel(); showScreen("screen-onboarding"); }
 
   function onbStepLevel() {

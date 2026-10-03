@@ -720,3 +720,30 @@ h1,h2{ letter-spacing:-.2px; }
 .settings .btn-ghost{ margin-top:10px; }
 .set-row input[type=checkbox]{ accent-color: var(--primary); }
 .set-row select{ max-width:58%; min-width:0; text-overflow:ellipsis; }
+
+/* ---------- Welcome & onboarding (Duolingo-style) ---------- */
+#screen-welcome.active{ background: var(--bg); }
+.welcome-card{ border-bottom-width:5px; padding:32px 24px 28px; }
+.welcome-emoji{ font-size:64px; letter-spacing:6px; margin-bottom:12px; animation: welcome-bob 2.4s ease-in-out infinite; }
+@keyframes welcome-bob{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-6px); } }
+.welcome-card h1{ font-size:32px; color: var(--primary); }
+.subtitle{ font-weight:700; font-size:16px; }
+.tagline{ background: var(--warn-bg); color:#8a6a1f; border-radius:999px; display:inline-block; padding:6px 14px; margin:8px 0 22px; }
+@media (prefers-color-scheme: dark){ .tagline{ color:#ffd98a; } }
+#name-entry label{ text-align:right; font-weight:800; }
+#btn-start,#btn-continue{ font-size:18px; padding:16px 22px; }
+.welcome-back{ font-weight:800; font-size:18px; }
+
+#screen-onboarding.active{ background: var(--bg); align-items:stretch; justify-content:flex-start; padding:0; }
+.onb-card{ border:none; border-radius:0; background: transparent; max-width:560px; margin:0 auto; padding:20px 16px 28px; }
+.onb-progress{ height:16px; margin-bottom:22px; }
+.onb-step{ font-size:13px; font-weight:800; color: var(--primary); }
+.onb-card h2{ font-size:26px; color: var(--ink); margin:6px 0 8px; }
+.onb-sub{ font-size:15px; }
+.onb-option{ border-radius:18px; padding:16px 18px; }
+.onb-option b{ font-size:17px; }
+.onb-option.on,.onb-option:hover{ border-color: var(--primary); background: var(--soft); }
+.chips{ gap:10px; }
+.chip{ padding:12px 18px; font-size:15px; }
+
+@media (prefers-reduced-motion: reduce){ .welcome-emoji{ animation:none; } }
