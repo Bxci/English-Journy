@@ -622,3 +622,51 @@ h1,h2{ letter-spacing:-.2px; }
 @keyframes confetti-fall{ to{ top:105%; translate: 30px 0; rotate: 540deg; opacity:.9; } }
 @media (prefers-reduced-motion: reduce){ .confetti{ display:none; } }
 #reward-stars-earned, #reward-accuracy{ direction:ltr; unicode-bidi:isolate; }
+
+/* ---------- Conversations, missions & reading (Duolingo-style) ---------- */
+/* hint cards read like a friendly tip, not a warning box */
+.convo-note,.reading-note{ background: var(--soft); border:2px solid var(--line); border-inline-start:6px solid var(--primary); border-radius: var(--radius); color: var(--ink); }
+.convo-section-title{ font-size:20px; }
+
+/* list rows: icon tile + title + chevron */
+.convo-item,.reading-item{ width:100%; display:flex; align-items:center; gap:14px; padding:12px 14px; min-height:76px; border-radius: var(--radius); text-align:right; position:relative; }
+.convo-item::after,.reading-item::after{ content:"‹"; font-size:28px; font-weight:800; color: var(--primary); margin-inline-start:auto; line-height:1; }
+.convo-icon,.reading-icon{ width:56px; height:56px; border-radius:16px; background: var(--soft); border:2px solid var(--line); box-shadow:0 4px 0 var(--edge); display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0; }
+.convo-item:hover,.reading-item:hover{ border-color: var(--primary); background: var(--soft); }
+.convo-item .plan-text,.reading-item .plan-text{ flex:1; }
+.convo-item .plan-text b,.reading-item .plan-text b{ font-size:17px; }
+
+/* locked conversations: grey tile with lock, no chevron */
+.convo-item.locked{ opacity:1; background: var(--bg); border-color: var(--line); }
+.convo-item.locked .convo-icon{ background: var(--track); filter: grayscale(1); opacity:.7; }
+.convo-item.locked .plan-text b{ color: var(--ink-soft); }
+.convo-item.locked::after{ content:none; }
+
+/* finished articles: green tile + check */
+.reading-item.done{ border-color: var(--good); }
+.reading-item.done .reading-icon{ background: var(--good-bg); border-color: var(--good); box-shadow:0 4px 0 var(--good-edge); }
+.reading-item.done::after{ content:"✓"; width:30px; height:30px; border-radius:50%; background: var(--good); color:#fff; font-size:18px; display:flex; align-items:center; justify-content:center; }
+.reading-item.done .plan-text b::after{ content:""; }
+
+/* chat: speech bubbles with tails, my replies solid purple */
+.chat-intro{ background: var(--soft); border-radius:16px; margin:0 16px 8px; padding:10px 14px; }
+.chat-log{ padding-top:12px; }
+.bubble{ border-radius:20px; font-weight:700; }
+.bubble.npc{ background: var(--card); border:2px solid var(--line); border-bottom-width:4px; border-top-right-radius:6px; }
+.bubble.me{ background: var(--primary); color:#fff; border:2px solid var(--primary-edge); border-bottom-width:4px; border-top-left-radius:6px; }
+.bubble.me .say-btn{ background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.4); color:#fff; }
+.bubble.me .bubble-he{ color: rgba(255,255,255,.85); }
+.chat-footer{ border-top:2px solid var(--line); }
+.chat-choices .option{ justify-content:center; text-align:center; }
+.chat-type-row .text-input{ border:2px solid var(--line); border-bottom-width:4px; border-radius:16px; padding:12px 14px; background: var(--card); color: var(--ink); font-size:16px; }
+.chat-type-row .text-input:focus{ outline:none; border-color: var(--primary); }
+
+/* reading a story: each paragraph a card, English prominent, tap highlight */
+.article-body{ padding-bottom:24px; }
+.article-para{ border-radius: var(--radius); line-height:2; }
+.article-en{ font-size:19px; color: var(--ink); border-bottom:2px dotted var(--primary); border-radius:0; padding:0 2px; }
+.article-en:hover,.article-en:active{ background: var(--soft); }
+.article-he{ border-inline-start:3px solid var(--line); padding-inline-start:8px; margin-top:4px; }
+#btn-article-done{ background: var(--good); box-shadow:0 5px 0 var(--good-edge); }
+#btn-article-done:hover{ box-shadow:0 5px 0 var(--good-edge); }
+#btn-article-done:active{ box-shadow:0 1px 0 var(--good-edge); }
