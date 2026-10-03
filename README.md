@@ -46,8 +46,8 @@ tests/              node:test suites (+ optional jsdom DOM smoke test)
 
 **Course → Level (Pre-A1, A1, A2) → Unit → Lesson → Concept → Exercise**
 
-- **Vocabulary item** (`curriculum/vocabulary.js`): `{ id, word, translation, partOfSpeech, level, category, emoji, exampleSentence, alts?, note? }` — 416 items.
-- **Concept** (`curriculum/concepts.js`): grammar / functional point — `{ id, level, title, skill, prerequisites[], explanation (Hebrew), examples [[en, he]], commonMistakes[], remediation (lesson id), drill[], vary?(rng) }` — 67, all with full content.
+- **Vocabulary item** (`curriculum/vocabulary.js`): `{ id, word, translation, partOfSpeech, level, category, emoji, exampleSentence, alts?, note? }` — 452 items.
+- **Concept** (`curriculum/concepts.js`): grammar / functional point — `{ id, level, title, skill, prerequisites[], explanation (Hebrew), examples [[en, he]], commonMistakes[], remediation (lesson id), drill[], vary?(rng) }` — 71, all with full content.
 - **Lesson** (`curriculum/pre-a1.js`, `a1.js`, `a2.js`): `{ id, title, objective, pre (prerequisite lesson ids), concepts (taught), practices (reviewed), vocab (new words), reviewVocab, notes, exercises[], status? }`. `course.js` flattens units into `CURRICULUM.lessons`, sets `level`/`unit`, and resolves `prerequisites` (explicit `pre`, otherwise the previous lesson in course order).
 - **Conversation scenario** (`curriculum/conversations.js`): scripted dialogue tree (see §8).
 
@@ -57,8 +57,8 @@ tests/              node:test suites (+ optional jsdom DOM smoke test)
 |---|---|---|---|
 | Pre-A1 | 5 | 21 | – |
 | A1 | 7 | 48 | – |
-| A2 | 4 | 7 | 6 |
-| **Total** | **16** | **76** (1,152 exercises) | **6** |
+| A2 | 5 | 17 | – |
+| **Total** | **17** | **86** (1,288 exercises) | **0** |
 
 | Level | Unit | Lessons |
 |---|---|---|
@@ -78,6 +78,7 @@ tests/              node:test suites (+ optional jsdom DOM smoke test)
 | A2 | 🧮 quantity | countable/uncountable · some/any · much/many/a lot of |
 | A2 | 🧭 advice & obligation | should · must / have to (mustn't vs don't have to) |
 | A2 | 🛠️ more grammar | adverbs of manner · object pronouns · infinitives (want/need to) · beginner gerunds (love -ing) · present perfect ever/never · present perfect already/yet |
+| A2 | 🧩 past, requests & conditionals | past continuous (was/were + -ing, when/while) · too / enough · requests & offers (Could you…? Would you like…?) · first conditional (If + present, will) |
 
 ### 3.3 Adding content
 
@@ -367,3 +368,15 @@ Not a systematic pass — a code review of this session's own new UI (confirm di
 - **The confirm dialog had no focus trap.** `aria-modal="true"` tells assistive tech the background is inert, but doesn't reliably stop physical Tab-key focus from leaving the dialog in every browser. Tab/Shift+Tab now cycle only between the dialog's two buttons while it's open, and focus returns to whatever element opened it when it closes (verified: opened from a settings button, tabbed through both dialog buttons and confirmed it never left them, closed it, confirmed focus landed back on the original button).
 - **The mission text input had no accessible label** — only a placeholder, which isn't a reliable accessible name across screen readers. Added a proper (visually-hidden) `<label>`, matching the pattern the conversation free-text input already used correctly.
 - **Mission feedback text (wrong-answer message, hint) updated with no `aria-live` region** — a screen-reader user would never hear it. Added `role="status" aria-live="polite"`, matching the pattern the conversation feedback banner already used correctly. Also added explicit (visually-hidden) "הושלם" / "עוד לא הושלם" status text to each mission checklist item, rather than relying on a strikethrough style + a ✅/⬜ emoji alone to convey state.
+
+## 24. Habit & practice features (added with the Duolingo-style redesign)
+
+- **Listening practice** (`curriculum/listening.js`, Reading tab → 🎧): hear a passage without seeing it, then answer Hebrew comprehension questions; text + translation can be revealed. XP is awarded once per passage.
+- **Shadowing** (record & compare) on speaking exercises: records the learner with `MediaRecorder`, then plays the model and the recording back to back. Nothing leaves the device and nothing is scored — it is an ear-training aid.
+- **Weekly XP goal** on the home screen (configurable in Progress → settings) with a share button (`navigator.share`, clipboard fallback), and **easy day** (5-minute goal that still keeps the streak).
+- **Trouble words**: vocabulary answered wrong at least once, weakest first, with a button that practises exactly those words.
+- **Daily reminder** as a downloadable recurring calendar event (`.ics`) — a static site cannot send push notifications, so the phone's own calendar does the reminding.
+- **Backup nudge** (weekly, snoozable) and an **add-to-home-screen hint** (install prompt on Android/Chrome, instructions on iOS).
+- **Unit-complete celebration** on the reward screen.
+- Pure helpers live in `engine/habits.js` (`tests/habits.test.js`); content structure is checked by `tests/content.test.js` and `tests/listening.test.js`.
+- New spoken text has no pre-rendered clip yet; it falls back to the browser's speech synthesis until `scripts/generate-audio.py` is re-run (see §15).

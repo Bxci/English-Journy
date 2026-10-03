@@ -724,4 +724,47 @@
     drill: [
       { err: "I have finished already yet.", a: "I have already finished.", o: ["I have finished yet already."], why: "רק אחד: {already} או {yet}, לא שניהם." },
     ] });
+  def({ id: "past-continuous", level: "a2", title: "מה עשית כש...: was / were + ing", prerequisites: ["past-be-was-were", "present-continuous-form"],
+    explanation: "{was / were} + פועל עם {-ing} מתאר פעולה שהייתה **באמצע** בזמן מסוים בעבר: {I was watching TV at 8 o'clock}. עם {I / he / she / it} ← {was}, עם {you / we / they} ← {were}. משתמשים בו עם {when} (פעולה קצרה שקטעה) ו-{while} (שתי פעולות ארוכות שקרו יחד): {I was cooking when the phone rang}. {She was reading while he was cooking}.",
+    examples: [["I was watching TV at eight.", "ראיתי טלוויזיה בשמונה."], ["She was sleeping when I called.", "היא ישנה כשהתקשרתי."], ["They were playing while we were cooking.", "הם שיחקו בזמן שאנחנו בישלנו."]],
+    commonMistakes: ["{She were reading} ← {She was reading}.", "{We was walking} ← {We were walking}.", "{I was watch} ← {I was watching} (חייבים {-ing})."],
+    remediation: "a2-past-cont",
+    vary: rng => { const x = pick(rng, [["I", "was", "cook", "cooking"], ["She", "was", "sleep", "sleeping"], ["They", "were", "play", "playing"], ["We", "were", "walk", "walking"], ["He", "was", "read", "reading"]]); return { fill: x[0] + " ___ when you called. (" + x[2] + ")", a: x[1] + " " + x[3], o: [(x[1] === "was" ? "were " : "was ") + x[3], x[1] + " " + x[2]], why: "{" + x[1] + "} + {-ing}: {" + x[1] + " " + x[3] + "}." }; },
+    drill: [
+      { err: "She were reading a book.", a: "She was reading a book.", o: ["She was read a book."], why: "עם {she} ← {was}, ואחריו {-ing}." },
+      { err: "We was walking home.", a: "We were walking home.", o: ["We were walk home."], why: "עם {we} ← {were}." },
+    ] });
+
+  def({ id: "too-enough", level: "a2", title: "יותר מדי / מספיק: too, enough", prerequisites: ["comparatives"],
+    explanation: "{too} + תואר = **יותר מדי** (בעיה): {It's too hot}. {תואר + enough} = **מספיק**: {He's tall enough}. עם שם עצם, {enough} בא **לפניו**: {We have enough time}. שימו לב: {too} לפני התואר, אבל {enough} **אחריו**: {hot enough}, לא {enough hot}.",
+    examples: [["This bag is too heavy.", "התיק הזה כבד מדי."], ["I'm not tall enough.", "אני לא גבוהה מספיק."], ["We have enough time.", "יש לנו מספיק זמן."]],
+    commonMistakes: ["{enough hot} ← {hot enough}.", "{too much expensive} ← {too expensive}.", "{I have too money} ← {I have too much money}."],
+    remediation: "a2-too-enough",
+    vary: rng => { const x = pick(rng, [["The tea is ___ hot. I can't drink it.", "too", "enough", "בעיה: יותר מדי חם"], ["I'm not tall ___ to reach it.", "enough", "too", "מספיק אחרי התואר: {tall enough}"], ["The room is big ___ for six people.", "enough", "too", "מספיק אחרי התואר: {big enough}"], ["It's ___ late to call her now.", "too", "enough", "יותר מדי מאוחר = בעיה: {too late}"]]); return { fill: x[0], a: x[1], o: [x[2]], why: x[3] + "." }; },
+    drill: [
+      { err: "The tea is enough hot.", a: "The tea is hot enough.", o: ["The tea is too enough hot."], why: "{enough} בא אחרי התואר: {hot enough}." },
+      { err: "It is too much expensive.", a: "It is too expensive.", o: ["It is enough expensive."], why: "לפני תואר ← {too}, בלי {much}." },
+    ] });
+
+  def({ id: "requests-offers", level: "a2", title: "בקשות והצעות: Could you...? Would you like...?", prerequisites: ["would-like", "can-ability"],
+    explanation: "לבקש בנימוס: {Can I...?} ו-{Could I...?} (אפשר ל...) ו-{Could you...?} / {Can you...?} (תוכלי...). {Could} מנומס יותר. אחריהם פועל בבסיס, בלי {to}: {Could you help me?} להציע: {Would you like...?} ({Would you like some tea?}) וגם {Can I help you?}. תשובות מנומסות: {Sure}, {Of course}, {Yes, please}, {No, thank you}.",
+    examples: [["Could you help me, please?", "תוכלי לעזור לי, בבקשה?"], ["Can I have the bill, please?", "אפשר לקבל את החשבון, בבקשה?"], ["Would you like some water?", "תרצי קצת מים?"]],
+    commonMistakes: ["{Could you to help me?} ← {Could you help me?}.", "{Can you opening the door?} ← {Can you open the door?}.", "{Do you want some tea?} נשמע ישיר; {Would you like...?} מנומס יותר."],
+    remediation: "a2-requests",
+    vary: rng => { const x = pick(rng, [["Could", "help", "me"], ["Can", "open", "the door"], ["Could", "send", "me a message"], ["Can", "wait", "a minute"]]); return { build: x[0] + " you " + x[1] + " " + x[2] + ", please?", he: "", why: "{" + x[0] + " you} + פועל בבסיס: {" + x[1] + "}." }; },
+    drill: [
+      { err: "Could you to help me?", a: "Could you help me?", o: ["Could you helping me?"], why: "אחרי {Could you} ← פועל בבסיס, בלי {to}." },
+      { err: "Can you opening the door?", a: "Can you open the door?", o: ["Can you opens the door?"], why: "אחרי {Can you} ← פועל בבסיס." },
+    ] });
+
+  def({ id: "first-conditional", level: "a2", title: "אם... אז...: If + הווה, will", prerequisites: ["future-will"],
+    explanation: "כדי לדבר על דבר שעשוי לקרות בעתיד ומה תהיה התוצאה: {If} + **הווה פשוט**, {will} + פועל. {If it rains, I will stay home}. **אל תשימו {will} אחרי {if}**: {If it rains}, לא {If it will rain}. אפשר גם להפוך את הסדר, בלי פסיק: {I will stay home if it rains}.",
+    examples: [["If it rains, I will stay home.", "אם ירד גשם, אשאר בבית."], ["If you study, you will pass.", "אם תלמדי, תעברי."], ["I will call you if I have time.", "אתקשר אלייך אם יהיה לי זמן."]],
+    commonMistakes: ["{If it will rain} ← {If it rains}.", "{If I will see him} ← {If I see him}.", "{If it rain} ← {If it rains} (עם it ← {rains})."],
+    remediation: "a2-if",
+    vary: rng => { const x = pick(rng, [["If it ___ tomorrow, we will stay home.", "rains", "will rain"], ["If you ___ hard, you will pass the test.", "study", "will study"], ["If she ___ me, I will answer.", "calls", "will call"], ["If he ___ late, we will start without him.", "is", "will be"]]); return { fill: x[0], a: x[1], o: [x[2]], why: "אחרי {if} ← הווה פשוט, בלי {will}." }; },
+    drill: [
+      { err: "If it will rain, I will take an umbrella.", a: "If it rains, I will take an umbrella.", o: ["If it rain, I will take an umbrella."], why: "אחרי {if} ← הווה פשוט: {rains}." },
+      { err: "If I will see him, I will tell him.", a: "If I see him, I will tell him.", o: ["If I saw him, I will tell him."], why: "אחרי {if} ← {see}, בלי {will}." },
+    ] });
 })(typeof globalThis !== "undefined" ? globalThis : this);

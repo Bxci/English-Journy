@@ -61,5 +61,57 @@
         { id: "thanks", label: "תגידי תודה", hint: "למשל: Thank you", keywords: [["thank you"], ["thanks"]] },
       ],
     },
+    {
+      id: "mission-restaurant",
+      emoji: "🍝",
+      title: "להזמין ארוחה במסעדה",
+      level: "a1",
+      intro: "את במסעדה והמלצר מגיע לשולחן. המטרה שלך: להזמין אוכל ושתייה ולבקש את החשבון.",
+      steps: [
+        { id: "greet", label: "תגידי שלום", hint: "למשל: Hello / Good evening", keywords: [["hi"], ["hello"], ["good evening"], ["good afternoon"]] },
+        { id: "food", label: "תזמיני משהו לאכול", hint: "למשל: I would like a pizza / I'll have the soup", keywords: [["i would like"], ["i'd like"], ["i will have"], ["i'll have"], ["can i have"], ["could i have"], ["pizza"], ["pasta"], ["salad"], ["soup"], ["sandwich"], ["chicken"]] },
+        { id: "drink", label: "תזמיני משהו לשתות", hint: "למשל: And water, please", keywords: [["water"], ["juice"], ["coffee"], ["tea"], ["cola"], ["wine"], ["beer"]] },
+        { id: "bill", label: "תבקשי את החשבון", hint: "למשל: Could I have the bill, please?", keywords: [["the bill"], ["the check"], ["how much"]] },
+      ],
+    },
+    {
+      id: "mission-hotel",
+      emoji: "🏨",
+      title: "צ'ק-אין במלון",
+      level: "a2",
+      intro: "הגעת למלון. המטרה שלך: לעשות צ'ק-אין, לשאול על ארוחת הבוקר ולבקש משהו לחדר.",
+      steps: [
+        { id: "reservation", label: "תגידי שיש לך הזמנה", hint: "למשל: I have a reservation", keywords: [["i have a reservation"], ["i have a booking"], ["check in"], ["check-in"], ["reservation"], ["booking"]] },
+        { id: "breakfast", label: "תשאלי על ארוחת הבוקר", hint: "למשל: What time is breakfast?", keywords: [["breakfast"]] },
+        { id: "request", label: "תבקשי משהו מנומס", hint: "למשל: Could you help me with my suitcase?", keywords: [["could you"], ["can you"], ["could i"], ["can i"], ["would it be possible"]] },
+        { id: "thanks", label: "תגידי תודה", hint: "למשל: Thank you very much", keywords: [["thank you"], ["thanks"]] },
+      ],
+    },
+    {
+      id: "mission-appointment",
+      emoji: "📅",
+      title: "לקבוע תור בטלפון",
+      level: "a2",
+      intro: "את מתקשרת למרפאה. המטרה שלך: לקבוע תור ליום ושעה שמתאימים לך.",
+      steps: [
+        { id: "greet", label: "תגידי שלום ותציגי את עצמך", hint: "למשל: Hello, this is Dana", keywords: [["hello"], ["hi"], ["good morning"], ["this is"], ["my name is"]] },
+        { id: "ask", label: "תבקשי לקבוע תור", hint: "למשל: Could I make an appointment?", keywords: [["appointment"], ["i would like to see"], ["i'd like to see"]] },
+        { id: "time", label: "תגידי באיזה יום או שעה מתאים לך", hint: "למשל: Tuesday at ten / Monday morning", keywords: [["monday"], ["tuesday"], ["wednesday"], ["thursday"], ["friday"], ["sunday"], ["tomorrow"], ["next week"], ["o'clock"], ["morning"], ["afternoon"]] },
+        { id: "thanks", label: "תגידי תודה", hint: "למשל: Thank you very much", keywords: [["thank you"], ["thanks"]] },
+      ],
+    },
+    {
+      id: "mission-lost",
+      emoji: "🆘",
+      title: "לבקש עזרה כשמשהו אבד",
+      level: "a2",
+      intro: "השארת את התיק שלך בתחנת הרכבת. המטרה שלך: לפנות לעובד ולבקש עזרה.",
+      steps: [
+        { id: "excuse", label: "תפני בנימוס", hint: "למשל: Excuse me", keywords: [["excuse me"], ["sorry"]] },
+        { id: "problem", label: "תסבירי מה קרה", hint: "למשל: I lost my bag / I left my bag on the train", keywords: [["lost my"], ["lost a"], ["left my"], ["forgot my"], ["my bag"], ["my phone"]] },
+        { id: "help", label: "תבקשי עזרה", hint: "למשל: Could you help me, please?", keywords: [["could you help"], ["can you help"], ["help me"], ["can i ask"], ["could i ask"]] },
+        { id: "thanks", label: "תגידי תודה", hint: "למשל: Thank you", keywords: [["thank you"], ["thanks"]] },
+      ],
+    },
   ];
 })(typeof globalThis !== "undefined" ? globalThis : this);

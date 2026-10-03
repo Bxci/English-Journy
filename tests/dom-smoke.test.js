@@ -21,7 +21,7 @@ function boot(storage) {
   if (storage) Object.entries(storage).forEach(([k, v]) => w.localStorage.setItem(k, v));
   const errors = [];
   w.addEventListener("error", e => errors.push(e.message));
-  w.confirm = () => true;
+  w.confirm = () => true; w.fetch = () => Promise.resolve({ ok: false, json: () => [] }); w.matchMedia = () => ({ matches: false });
   w.alert = () => {};
   w.HTMLElement.prototype.scrollIntoView = function () {};
   w.scrollTo = () => {};
@@ -141,7 +141,7 @@ test("DOM smoke: full learner journey through the real UI", { skip: JSDOM ? fals
   // ---------- screens ----------
   app().goMap();
   assert(d.querySelectorAll(".lesson-row").length === w.CURRICULUM.lessons.length, "map shows all lessons");
-  assert(d.querySelectorAll(".st-planned").length === 6, "planned lessons shown");
+  assert(d.querySelectorAll(".st-planned").length === 0, "no planned lessons remain");
   app().goProgress();
   assert(d.querySelectorAll(".skill-row").length === 6, "6 skill bars");
   assert(!/\d+\.\d+%/.test(d.getElementById("progress-body").textContent), "no fake precision");

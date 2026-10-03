@@ -381,4 +381,30 @@
   add("reading", "a2", "adjective", [
     ["calm", "רגועה", "🧘", "Take a deep breath and stay calm."],
   ]);
+  /* ======================= A2: weather, travel, requests ======================= */
+  add("weather", "a2", "noun", [
+    ["weather", "מזג אוויר", "🌦️", "The weather is nice today."],
+    ["storm", "סערה", "⛈️", "There was a big storm last night."],
+  ]);
+  add("weather", "a2", "adjective", [
+    ["sunny", "שמשי", "☀️", "It is sunny and warm today."],
+    ["cloudy", "מעונן", "☁️", "It was cloudy all morning."],
+    ["windy", "עם הרבה רוח", "🌬️", "It is very windy at the beach."],
+    ["wet", "רטוב", "💧", "My shoes are wet."],
+  ]);
+  add("travel2", "a2", "noun", [
+    ["hotel", "מלון", "🏨", "We stayed in a small hotel."],
+    ["flight", "טיסה", "✈️", "My flight leaves at ten."],
+    ["suitcase", "מזוודה", "🧳", "My suitcase is very heavy."],
+    ["appointment", "תור / פגישה", "📅", "I have an appointment at three."],
+    ["message", "הודעה", "💬", "I sent you a message."],
+  ]);
+  add("adjectives3", "a2", "adjective", [
+    ["heavy", "כבד", "🏋️", "This bag is heavy."],
+    ["loud", "חזק / רועש", "🔊", "The music is loud."],
+  ]);
+  add("actions3", "a2", "verb", [
+    ["cancel", "לבטל", "❌", "I want to cancel my appointment."],
+    ["answer", "לענות", "📞", "Please answer the phone."],
+  ]);
 })(typeof globalThis !== "undefined" ? globalThis : this);

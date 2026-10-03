@@ -204,4 +204,131 @@
         { en: "Yes, please call I in the morning.", bad: true, why: "אחרי פועל ← כינוי מושא: {call me}.", concept: "object-pronouns" } ] },
       end: { npc: "Perfect, see you this weekend!", he: "מושלם, נתראה בסוף השבוע!", end: true },
     } });
+  S({ id: "conv-hotel", title: "צ'ק-אין במלון", icon: "🏨", level: "a2", requires: ["a2-requests"], goals: ["travel", "general"],
+    intro: "הגעת למלון אחרי טיסה ארוכה. עשי צ'ק-אין.",
+    start: "n1", nodes: {
+      n1: { npc: "Good evening! Can I help you?", he: "ערב טוב! אפשר לעזור?", choices: [
+        { en: "Good evening. I have a reservation.", next: "n2" },
+        { en: "Hello! I'd like to check in, please.", next: "n2" },
+        { en: "Good evening. You help me.", bad: true, why: "מבקשים בנימוס: {I'd like to check in} או {I have a reservation}.", concept: "requests-offers" } ] },
+      n2: { npc: "Of course. Could I have your passport, please?", he: "בטח. אפשר לקבל את הדרכון שלך, בבקשה?", choices: [
+        { en: "Sure. Here you are.", next: "n3" },
+        { en: "Of course. Here is my passport.", next: "n3" },
+        { en: "Yes, I could.", bad: true, why: "על בקשה עונים {Sure} / {Of course}, לא {Yes, I could}.", concept: "requests-offers" } ] },
+      n3: { npc: "Thank you. Your room is on the third floor. Would you like help with your suitcase?", he: "תודה. החדר שלך בקומה שלישית. תרצי עזרה עם המזוודה?", choices: [
+        { en: "Yes, please. It's very heavy.", next: "n4" },
+        { en: "No, thank you. I can carry it.", next: "n4" },
+        { en: "Yes, I would like.", bad: true, why: "מסכימים להצעה עם {Yes, please}.", concept: "requests-offers" } ] },
+      n4: { npc: "Breakfast is from seven to ten. Is there anything else?", he: "ארוחת הבוקר משבע עד עשר. עוד משהו?", choices: [
+        { en: "Could you give me a wake-up call at seven?", next: "end" },
+        { en: "No, thank you. That's all.", next: "end" },
+        { en: "Could you to give me a key?", bad: true, why: "אחרי {Could you} ← פועל בבסיס, בלי {to}.", concept: "requests-offers" } ] },
+      end: { npc: "Enjoy your stay!", he: "שהות נעימה!", end: true },
+    } });
+
+  S({ id: "conv-appointment", title: "לקבוע תור בטלפון", icon: "📞", level: "a2", requires: ["a2-requests"], goals: ["general", "work", "conversation"],
+    intro: "את מתקשרת למרפאה כדי לקבוע תור.",
+    start: "n1", nodes: {
+      n1: { npc: "Good morning, Dr. Cohen's office. How can I help you?", he: "בוקר טוב, המשרד של ד״ר כהן. איך אפשר לעזור?", choices: [
+        { en: "Good morning. Could I make an appointment, please?", next: "n2" },
+        { en: "Hello. I'd like to make an appointment.", next: "n2" },
+        { en: "Hello. I make an appointment.", bad: true, why: "בקשה מנומסת: {Could I make an appointment?} או {I'd like to...}.", concept: "requests-offers" } ] },
+      n2: { npc: "Sure. Would you like Monday or Tuesday?", he: "בטח. תרצי יום שני או יום שלישי?", choices: [
+        { en: "Tuesday, please.", next: "n3" },
+        { en: "Monday is better for me.", next: "n3" },
+        { en: "Yes, please.", bad: true, why: "נשאלת לבחור בין שתי אפשרויות — עונים עם אחת מהן: {Tuesday, please}.", concept: "requests-offers" } ] },
+      n3: { npc: "We have an appointment at ten o'clock. Is that OK?", he: "יש לנו תור בעשר. זה מתאים?", choices: [
+        { en: "Yes, that's perfect. Thank you.", next: "n4" },
+        { en: "Could we do it at eleven, please?", next: "n4" },
+        { en: "Yes, I could.", bad: true, why: "{Is that OK?} עונים {Yes, that's fine} / {Yes, perfect}.", concept: "requests-offers" } ] },
+      n4: { npc: "Great. Could I have your name and phone number?", he: "מצוין. אפשר לקבל שם ומספר טלפון?", choices: [
+        { en: "Of course. My name is Dana.", next: "end" },
+        { en: "Sure. It's Dana Levi.", next: "end" },
+        { en: "I can you my name.", bad: true, why: "אומרים פשוט: {My name is...}.", concept: "introductions" } ] },
+      end: { npc: "Thank you, Dana. See you on Tuesday!", he: "תודה, דנה. נתראה ביום שלישי!", end: true },
+    } });
+
+  S({ id: "conv-rain-plans", title: "מה נעשה אם ירד גשם?", icon: "☔", level: "a2", requires: ["a2-if"], goals: ["conversation", "general"],
+    intro: "את מתכננת עם חבר טיול לסוף השבוע, אבל הגיעה תחזית גשם.",
+    start: "n1", nodes: {
+      n1: { npc: "Let's go to the beach on Saturday! What do you think?", he: "בואי נלך לים בשבת! מה דעתך?", choices: [
+        { en: "Good idea! But what if it rains?", next: "n2" },
+        { en: "Great! I hope it will be sunny.", next: "n2" },
+        { en: "Good idea. If it will rain?", bad: true, why: "{What if it rains?} — אחרי {if} ← הווה פשוט, בלי {will}.", concept: "first-conditional" } ] },
+      n2: { npc: "If it rains, we will go to a café instead.", he: "אם ירד גשם, נלך לבית קפה במקום.", choices: [
+        { en: "Perfect. If it's cloudy, I'll bring a jacket.", next: "n3" },
+        { en: "OK. I will bring a book if we go to a café.", next: "n3" },
+        { en: "If it will be cloudy, I bring a jacket.", bad: true, why: "אחרי {if} ← {is}, ובתוצאה ← {I will bring}.", concept: "first-conditional" } ] },
+      n3: { npc: "Great. If you want, I can drive.", he: "מעולה. אם את רוצה, אני יכול לנהוג.", choices: [
+        { en: "Thanks! If you drive, I will pay for the gas.", next: "end" },
+        { en: "Thank you! I will bring the sandwiches.", next: "end" },
+        { en: "If you will drive, I pay.", bad: true, why: "{If you drive, I will pay} — בלי {will} אחרי {if}.", concept: "first-conditional" } ] },
+      end: { npc: "Perfect. See you on Saturday!", he: "מעולה. נתראה בשבת!", end: true },
+    } });
+
+  S({ id: "conv-clothes", title: "לקנות בגדים", icon: "👗", level: "a2", requires: ["a1-shopping", "a2-too-enough", "a2-requests"], goals: ["general", "travel"],
+    intro: "את בחנות בגדים ומנסה חולצה.",
+    start: "n1", nodes: {
+      n1: { npc: "Hi! Can I help you?", he: "היי! אפשר לעזור?", choices: [
+        { en: "Yes, please. Could I try this shirt?", next: "n2" },
+        { en: "I'm looking for a blue shirt.", next: "n2" },
+        { en: "Yes, I try this shirt.", bad: true, why: "בקשה מנומסת: {Could I try this shirt?}", concept: "requests-offers" } ] },
+      n2: { npc: "Of course. How is it?", he: "בטח. איך זה?", choices: [
+        { en: "It's too small for me.", next: "n3" },
+        { en: "It's nice, but it's too expensive.", next: "n3" },
+        { en: "It is enough small.", bad: true, why: "{too small} — {too} לפני התואר.", concept: "too-enough" } ] },
+      n3: { npc: "Would you like a bigger size?", he: "תרצי מידה גדולה יותר?", choices: [
+        { en: "Yes, please. Do you have a medium?", next: "n4" },
+        { en: "No, thank you. I'll look at other shirts.", next: "n4" },
+        { en: "Yes, I would like it.", bad: true, why: "מסכימים להצעה עם {Yes, please}.", concept: "requests-offers" } ] },
+      n4: { npc: "Here is a medium. Is it big enough?", he: "הנה מידה בינונית. זה מספיק גדול?", choices: [
+        { en: "Yes, it's perfect. I'll take it!", next: "end" },
+        { en: "It's good. How much is it?", next: "end" },
+        { en: "Yes, it is too perfect.", bad: true, why: "{too} מתאר בעיה — כאן הכול טוב, אז {perfect} בלי {too}.", concept: "too-enough" } ] },
+      end: { npc: "Great! It's thirty shekels.", he: "מעולה! זה שלושים שקלים.", end: true },
+    } });
+
+  S({ id: "conv-airport", title: "בשדה התעופה", icon: "✈️", level: "a2", requires: ["a2-requests", "a2-pp-2"], goals: ["travel", "general"],
+    intro: "את בדלפק הצ'ק-אין בשדה התעופה.",
+    start: "n1", nodes: {
+      n1: { npc: "Hello! Where are you flying today?", he: "שלום! לאן את טסה היום?", choices: [
+        { en: "Good morning. I'm flying to Rome.", next: "n2" },
+        { en: "To Rome, please. Here is my passport.", next: "n2" },
+        { en: "I fly to Rome yesterday.", bad: true, why: "אומרים מה קורה עכשיו: {I'm flying to Rome}.", concept: "present-continuous-form" } ] },
+      n2: { npc: "Have you packed your bags yourself?", he: "ארזת את התיקים בעצמך?", choices: [
+        { en: "Yes, I have. I've already packed everything.", next: "n3" },
+        { en: "Yes, I packed them this morning.", next: "n3" },
+        { en: "Yes, I have pack them.", bad: true, why: "אחרי {have} ← פועל שלישי: {I have packed}.", concept: "present-perfect-already-yet" } ] },
+      n3: { npc: "Would you like a window seat or an aisle seat?", he: "תרצי מושב ליד חלון או ליד המעבר?", choices: [
+        { en: "A window seat, please.", next: "n4" },
+        { en: "Could I have an aisle seat?", next: "n4" },
+        { en: "Yes, please.", bad: true, why: "נשאלת לבחור בין שתי אפשרויות — עונים עם אחת מהן.", concept: "requests-offers" } ] },
+      n4: { npc: "Here is your boarding pass. The flight leaves at ten. Have you been to Rome before?", he: "הנה כרטיס העלייה למטוס. הטיסה יוצאת בעשר. היית פעם ברומא?", choices: [
+        { en: "No, I've never been there. I'm very excited!", next: "end" },
+        { en: "Yes, I have. I went there two years ago.", next: "end" },
+        { en: "No, I never was there.", bad: true, why: "ניסיון בחיים ← {I have never been there}.", concept: "present-perfect-ever-never" } ] },
+      end: { npc: "Have a great trip!", he: "טיסה נעימה!", end: true },
+    } });
+
+  S({ id: "conv-yesterday", title: "מה קרה אתמול?", icon: "🗨️", level: "a2", requires: ["a2-past-cont"], goals: ["conversation", "general"],
+    intro: "חברה שואלת איפה היית כשהיא ניסתה להתקשר אלייך אתמול.",
+    start: "n1", nodes: {
+      n1: { npc: "I called you yesterday at six. Where were you?", he: "התקשרתי אלייך אתמול בשש. איפה היית?", choices: [
+        { en: "Sorry! I was driving home.", next: "n2" },
+        { en: "I was cooking dinner.", next: "n2" },
+        { en: "I am cooking dinner.", bad: true, why: "זה היה אתמול — {I was cooking}.", concept: "past-continuous" } ] },
+      n2: { npc: "That's OK. What were you cooking?", he: "זה בסדר. מה בישלת?", choices: [
+        { en: "I was making pasta.", next: "n3" },
+        { en: "I was cooking chicken and rice.", next: "n3" },
+        { en: "I were cooking pasta.", bad: true, why: "עם {I} ← {was}, לא {were}.", concept: "past-continuous" } ] },
+      n3: { npc: "Mmm! I was watching TV when you called back.", he: "ממ! אני ראיתי טלוויזיה כשהתקשרת בחזרה.", choices: [
+        { en: "Oh! What were you watching?", next: "n4" },
+        { en: "Really? I was washing the dishes then.", next: "n4" },
+        { en: "What you was watching?", bad: true, why: "שאלה: {What were you watching?}", concept: "past-continuous" } ] },
+      n4: { npc: "A funny movie. It was raining, so I stayed home.", he: "סרט מצחיק. ירד גשם, אז נשארתי בבית.", choices: [
+        { en: "Good idea! It was windy, too.", next: "end" },
+        { en: "Nice. Let's watch a movie together soon.", next: "end" },
+        { en: "I were at home too.", bad: true, why: "עם {I} ← {was}: {I was at home too}.", concept: "past-be-was-were" } ] },
+      end: { npc: "Yes! Talk to you later.", he: "כן! נדבר אחר כך.", end: true },
+    } });
 })(typeof globalThis !== "undefined" ? globalThis : this);

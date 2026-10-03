@@ -95,7 +95,7 @@
       title: "איך בונים ביטחון עצמי",
       minutes: 3,
       level: "a2",
-      vocab: ["confidence", "deserve", "grateful", "overwhelmed", "worth it"],
+      vocab: ["confidence", "deserve", "grateful", "overwhelmed", "worth-it"],
       paragraphs: [
         [
           ["Confidence is a skill, not a gift.", "ביטחון עצמי הוא כישרון נרכש, לא מתנה."],
@@ -185,6 +185,156 @@
           ["Talk to new people along the way.", "דברי עם אנשים חדשים בדרך."],
           ["Every trip teaches you something new.", "כל טיול מלמד אותך משהו חדש."],
           ["Be grateful for the freedom to explore.", "היי אסירת תודה על החופש לחקור."],
+        ],
+      ],
+    },
+    {
+      id: "learn-english-tips",
+      emoji: "💡",
+      title: "איך ללמוד אנגלית כל יום",
+      minutes: 3,
+      level: "a1",
+      vocab: ["routine", "rest", "focus"],
+      paragraphs: [
+        [
+          ["Learning English is a journey.", "ללמוד אנגלית זה מסע."],
+          ["You do not need a lot of time.", "את לא צריכה הרבה זמן."],
+          ["Ten minutes every day is better than two hours once a week.", "עשר דקות כל יום עדיפות על שעתיים פעם בשבוע."],
+        ],
+        [
+          ["Listen and repeat out loud.", "הקשיבי וחזרי בקול."],
+          ["Read short texts and learn five new words.", "קראי טקסטים קצרים ולמדי חמש מילים חדשות."],
+          ["Speak with a friend, even for one minute.", "דברי עם חברה, אפילו דקה אחת."],
+        ],
+        [
+          ["Do not be afraid of mistakes.", "אל תפחדי מטעויות."],
+          ["Every mistake teaches your brain something.", "כל טעות מלמדת את המוח משהו."],
+          ["Be patient and enjoy the journey.", "היי סבלנית ותהני מהמסע."],
+        ],
+      ],
+    },
+    {
+      id: "weather-and-mood",
+      emoji: "🌦️",
+      title: "מזג האוויר והמצב רוח",
+      minutes: 3,
+      level: "a1",
+      vocab: ["weather", "sunny", "cloudy", "windy", "storm"],
+      paragraphs: [
+        [
+          ["The weather changes every day.", "מזג האוויר משתנה כל יום."],
+          ["Today it is sunny and warm.", "היום שמשי וחם."],
+          ["Yesterday it was cloudy and cold.", "אתמול היה מעונן וקר."],
+        ],
+        [
+          ["Many people feel happy when it is sunny.", "הרבה אנשים מרגישים שמחים כשיש שמש."],
+          ["On cloudy days, they feel tired.", "בימים מעוננים הם מרגישים עייפים."],
+          ["During a storm, some people like to stay home.", "בזמן סערה, יש אנשים שאוהבים להישאר בבית."],
+        ],
+        [
+          ["You can not change the weather.", "אי אפשר לשנות את מזג האוויר."],
+          ["But you can change your plans.", "אבל אפשר לשנות את התוכניות."],
+          ["A rainy day is a good day for a book and a warm drink.", "יום גשום הוא יום טוב לספר ולשתייה חמה."],
+        ],
+      ],
+    },
+    {
+      id: "better-sleep",
+      emoji: "😴",
+      title: "איך לישון טוב יותר",
+      minutes: 3,
+      level: "a2",
+      vocab: ["rest", "energy", "early", "calm"],
+      paragraphs: [
+        [
+          ["Good sleep gives you energy for the whole day.", "שינה טובה נותנת לך אנרגיה לכל היום."],
+          ["Most adults should sleep seven or eight hours.", "רוב המבוגרים צריכים לישון שבע או שמונה שעות."],
+          ["When you sleep badly, it is hard to focus.", "כשישנים רע, קשה להתרכז."],
+        ],
+        [
+          ["You should go to bed at the same time every night.", "כדאי ללכת לישון באותה שעה כל לילה."],
+          ["You shouldn't drink coffee late in the evening.", "לא כדאי לשתות קפה מאוחר בערב."],
+          ["The room must be dark and quiet.", "החדר צריך להיות חשוך ושקט."],
+        ],
+        [
+          ["If you can not sleep, do not look at your phone.", "אם את לא מצליחה לישון, אל תסתכלי בטלפון."],
+          ["Read a book or listen to calm music instead.", "במקום זה קראי ספר או האזיני למוזיקה רגועה."],
+          ["If you sleep well tonight, tomorrow will be a better day.", "אם תישני טוב הלילה, מחר יהיה יום טוב יותר."],
+        ],
+      ],
+    },
+    {
+      id: "city-or-village",
+      emoji: "🏙️",
+      title: "עיר או כפר?",
+      minutes: 4,
+      level: "a2",
+      vocab: ["energy", "stress", "calm"],
+      paragraphs: [
+        [
+          ["Some people love big cities.", "יש אנשים שאוהבים ערים גדולות."],
+          ["A city is more exciting than a village.", "עיר מרגשת יותר מכפר."],
+          ["There are more jobs, more restaurants and more events.", "יש יותר משרות, יותר מסעדות ויותר אירועים."],
+        ],
+        [
+          ["But life in a city is also more expensive.", "אבל החיים בעיר גם יקרים יותר."],
+          ["The streets are louder and the air is dirtier.", "הרחובות רועשים יותר והאוויר מזוהם יותר."],
+          ["Many people feel more stress in the city.", "הרבה אנשים מרגישים יותר לחץ בעיר."],
+        ],
+        [
+          ["A village is quieter and calmer.", "כפר שקט ורגוע יותר."],
+          ["Neighbors know each other, and life is slower.", "השכנים מכירים זה את זה, והחיים איטיים יותר."],
+          ["The best place to live is the place that feels right for you.", "המקום הכי טוב לגור בו הוא המקום שמרגיש נכון בשבילך."],
+        ],
+      ],
+    },
+    {
+      id: "first-flight",
+      emoji: "✈️",
+      title: "הטיסה הראשונה שלי",
+      minutes: 4,
+      level: "a2",
+      vocab: ["flight", "suitcase", "hotel", "confidence"],
+      paragraphs: [
+        [
+          ["Last year, I took my first flight alone.", "אשתקד טסתי בפעם הראשונה לבד."],
+          ["I was nervous because I had never been to an airport alone.", "הייתי עצבנית כי מעולם לא הייתי לבד בשדה תעופה."],
+          ["I arrived three hours early.", "הגעתי שלוש שעות מוקדם."],
+        ],
+        [
+          ["I checked in, and I gave my suitcase to the worker.", "עשיתי צ'ק-אין, ונתתי את המזוודה לעובדת."],
+          ["While I was waiting for my flight, I read a book.", "בזמן שחיכיתי לטיסה, קראתי ספר."],
+          ["Then I heard my name on the speaker!", "ואז שמעתי את השם שלי ברמקול!"],
+        ],
+        [
+          ["It was just a small problem with my passport, and they fixed it quickly.", "זו הייתה רק בעיה קטנה עם הדרכון, והם תיקנו אותה מהר."],
+          ["When we landed, I felt proud of myself.", "כשנחתנו הרגשתי גאה בעצמי."],
+          ["Now I have more confidence, and I want to travel again!", "עכשיו יש לי יותר ביטחון, ואני רוצה לטוס שוב!"],
+        ],
+      ],
+    },
+    {
+      id: "small-habits",
+      emoji: "🌱",
+      title: "הרגלים קטנים, שינוי גדול",
+      minutes: 3,
+      level: "a2",
+      vocab: ["routine", "energy", "focus", "recharge"],
+      paragraphs: [
+        [
+          ["Big changes often start with small habits.", "שינויים גדולים מתחילים לרוב מהרגלים קטנים."],
+          ["You do not have to change your whole life today.", "את לא חייבת לשנות את כל החיים שלך היום."],
+          ["Choose one small thing and do it every day.", "בחרי דבר קטן אחד ועשי אותו כל יום."],
+        ],
+        [
+          ["If you drink a glass of water every morning, you will feel better.", "אם תשתי כוס מים כל בוקר, תרגישי טוב יותר."],
+          ["If you walk for ten minutes every day, you will have more energy.", "אם תלכי עשר דקות כל יום, תהיה לך יותר אנרגיה."],
+          ["If you study English for five minutes, you will improve.", "אם תלמדי אנגלית חמש דקות, תשתפרי."],
+        ],
+        [
+          ["Some days you will forget, and that is OK.", "יהיו ימים שבהם תשכחי, וזה בסדר."],
+          ["Do not stop. Start again tomorrow.", "אל תפסיקי. תתחילי שוב מחר."],
+          ["Small steps every day take you very far.", "צעדים קטנים כל יום לוקחים אותך רחוק מאוד."],
         ],
       ],
     },
