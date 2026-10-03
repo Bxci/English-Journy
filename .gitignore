@@ -14,3 +14,10 @@ scripts/audio-gen/gen.log
 test-results/
 playwright-report/
 blob-report/
+
+# local tooling / unrelated projects
+videos/
+.claude/
+.DS_Store
+.agents/
+skills-lock.json
