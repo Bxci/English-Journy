@@ -27,7 +27,7 @@ Every `curriculum/*.js` and `engine/*.js` file works both as a browser `<script>
   ```bash
   python3 -m http.server 8000   # then open http://localhost:8000
   ```
-- It can be hosted on **any static host** (GitHub Pages, Netlify, S3, ...). **No deployment exists** — nothing in this repo deploys anywhere.
+- It can be hosted on **any static host** (GitHub Pages, Netlify, S3, ...). **Live deployment:** https://bxci.github.io/English-Journy/ (GitHub Pages, served from the root of `main`; every push to `main` republishes it). Bump `CACHE_VERSION` in `sw.js` whenever a shell file changes so installed copies pick it up.
 
 ```
 index.html          screens + script tags (load order matters: course.js last among curriculum files)
