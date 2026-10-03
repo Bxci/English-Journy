@@ -7,10 +7,12 @@
   const C = window.CURRICULUM;
   const ARTICLES = window.ARTICLES || [];
   const articleById = {}; ARTICLES.forEach(a => { articleById[a.id] = a; });
+  const LISTENING = window.LISTENING || [];
   const MISSIONS = window.MISSIONS || [];
   const missionById = {}; MISSIONS.forEach(m => { missionById[m.id] = m; });
   const vocabById = {}; (C.vocabulary || []).forEach(v => { vocabById[v.id] = v; });
   const EJ = window.EJ;
+  const H = EJ.habits;
   const M = EJ.mastery, SRS = EJ.srs, UN = EJ.unlock, MI = EJ.mistakes, N = EJ.normalize, AD = EJ.adaptive, MS = EJ.missions;
   const CFG = M.CONFIG;
   const engine = EJ.exercises.createEngine(C);
@@ -47,11 +49,14 @@
       articlesRead: {},   // articleId -> { at }
       missions: {},       // missionId -> { completedAt, stepsDone: [stepId,...], attempts }
       certificates: {},   // level -> date
-      daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0, xp: 0 },
+      daily: { date: null, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0, xp: 0, easy: false },
       history: [],         // archived daily records (last ~60 days) for the Weekly Progress summary
       totalSpoken: 0,      // lifetime count of correctly-answered speaking exercises (for the "first sentence" badge)
       time: { totalSeconds: 0 },
-      settings: { slowAudio: false, voiceURI: null },
+      settings: { slowAudio: false, voiceURI: null, weeklyXpGoal: 50, reminderTime: "20:00", installDismissed: false, backupSnoozeUntil: 0 },
+      lastBackupAt: null,   // epoch ms of the last exported backup (drives the weekly backup nudge)
+      listened: {},         // listeningId -> { at, best }
+      celebratedUnits: {},  // unitId -> true once the 'unit complete' celebration was shown
       legacy: null,
     };
   }
@@ -111,7 +116,7 @@
     const t = todayStr();
     if (state.daily.date !== t) {
       if (state.daily.date) state.history = (state.history || []).concat([state.daily]).slice(-60);
-      state.daily = { date: t, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0, xp: 0 };
+      state.daily = { date: t, seconds: 0, reviewDone: 0, lessonsDone: 0, practiceDone: 0, convoDone: 0, spokenDone: 0, xp: 0, easy: false };
     }
   }
 
@@ -242,6 +247,58 @@
   };
   Audio.init();
 
+  /** Plays one English line and resolves when it ends (or after a safety timeout). Used for listening passages. */
+  Audio.speakAsync = function (text, slow) {
+    return new Promise(resolve => {
+      const t = stripAside(text);
+      let finished = false;
+      const done = () => { if (!finished) { finished = true; clearTimeout(guard); resolve(); } };
+      const guard = setTimeout(done, 15000);
+      const wantSlow = !!(slow || state.settings.slowAudio);
+      if (AudioClips.has(t)) {
+        AudioClips.play(t, wantSlow);
+        AudioClips.el.onended = done; AudioClips.el.onerror = done;
+        return;
+      }
+      if (!this.supported) { done(); return; }
+      if (!this.voice) this.voice = this.pickVoice();
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(t);
+        u.lang = "en-US";
+        if (this.voice) u.voice = this.voice;
+        u.rate = wantSlow ? 0.6 : 0.9;
+        u.onend = done; u.onerror = done;
+        window.speechSynthesis.speak(u);
+      } catch (e) { done(); }
+    });
+  };
+  Audio.stop = function () {
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) { /* */ }
+    if (AudioClips.el) { AudioClips.el.onended = null; AudioClips.el.pause(); }
+  };
+
+  /** Record-and-compare ("shadowing"): records the learner, then plays the model and the recording back to back. */
+  const Shadow = {
+    get supported() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder); },
+    async record(maxMs) {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const rec = new MediaRecorder(stream);
+      const chunks = [];
+      rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      const stopped = new Promise(res => { rec.onstop = res; });
+      rec.start();
+      const timer = setTimeout(() => { try { rec.stop(); } catch (e) { /* */ } }, maxMs || 8000);
+      return {
+        stop() { clearTimeout(timer); try { if (rec.state !== "inactive") rec.stop(); } catch (e) { /* */ } },
+        async result() { await stopped; stream.getTracks().forEach(t => t.stop()); return URL.createObjectURL(new Blob(chunks, { type: rec.mimeType || "audio/webm" })); },
+      };
+    },
+    playUrl(url) {
+      return new Promise(resolve => { const a = new window.Audio(url); a.onended = resolve; a.onerror = resolve; a.play().catch(resolve); });
+    },
+  };
+
   /** Settings row: pick which installed voice reads English aloud (list depends on device/browser). */
   function voiceRowHtml() {
     if (!Audio.supported) return "";
@@ -345,7 +402,7 @@
      ============================================================ */
   const screens = {};
   document.querySelectorAll(".screen").forEach(s => { screens[s.id] = s; });
-  const NAV_SCREENS = ["screen-home", "screen-map", "screen-reading", "screen-convos", "screen-progress"];
+  const NAV_SCREENS = ["screen-home", "screen-map", "screen-reading", "screen-listen", "screen-convos", "screen-progress"];
 
   function showScreen(id) {
     Object.values(screens).forEach(s => s.classList.remove("active"));
@@ -353,7 +410,7 @@
     const nav = $("bottom-nav");
     nav.classList.toggle("hidden", !NAV_SCREENS.includes(id));
     nav.querySelectorAll("button").forEach(b => {
-      const on = b.dataset.nav === id;
+      const on = b.dataset.nav === (id === "screen-listen" ? "screen-reading" : id);
       b.classList.toggle("active", on);
       if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
@@ -609,13 +666,17 @@
     return MISSIONS.filter(m => !state.missions[m.id] && order.indexOf(m.level) <= lv)[0] || null;
   }
 
+  /** Today's minutes goal: a 5-minute "easy day" (keeps the streak alive without pressure) or the learner's usual goal. */
+  const EASY_DAY_MINUTES = 5;
+  function dayGoalMinutes() { return state.daily && state.daily.easy ? EASY_DAY_MINUTES : state.onboarding.dailyMinutes; }
+
   function buildPlan() {
     rollDaily();
     const due = SRS.countDue(state.srs, now());
     const rem = dueRemediation();
     const next = nextLesson();
     const convo = recommendedConvo();
-    const plan = MI.planDay({ dailyMinutes: state.onboarding.dailyMinutes, dueCount: due, hasLesson: !!next, remediationCount: rem.length, conversationAvailable: !!convo });
+    const plan = MI.planDay({ dailyMinutes: dayGoalMinutes(), dueCount: due, hasLesson: !!next, remediationCount: rem.length, conversationAvailable: !!convo });
     const d = state.daily;
     return plan.chunks.map(ch => {
       if (ch.kind === "review") return Object.assign(ch, { icon: "🔁", title: "חזרה יומית", sub: Math.min(due, plan.reviewItems) + " פריטים שכדאי לרענן", done: d.reviewDone > 0 && SRS.countDue(state.srs, now()) === 0, run: () => startReview(plan.reviewItems) });
@@ -656,7 +717,7 @@
     const f = goalFlavor();
     $("home-flavor").textContent = f ? f.icon + " " + f.flavor : "";
     const plan = buildPlan();
-    const goal = state.onboarding.dailyMinutes;
+    const goal = dayGoalMinutes();
     const doneMin = Math.round(state.daily.seconds / 60);
     $("today-minutes").textContent = doneMin + " / " + goal + " דק׳";
     $("today-bar").style.width = Math.min(100, Math.round((doneMin / goal) * 100)) + "%";
@@ -677,7 +738,67 @@
     const lv = currentLevel();
     const lvLessons = realLessons.filter(l => l.level === lv);
     $("home-level").innerHTML = "רמה נוכחית: <b>" + LEVEL_NAME[lv] + "</b> · " + lvLessons.filter(l => UN.isSatisfied(l.id, state)).length + " מתוך " + lvLessons.length + " שיעורים";
+    renderEasyDay();
+    renderWeekGoal();
+    renderBanners();
     showScreen("screen-home");
+  }
+
+  function renderEasyDay() {
+    const b = $("btn-easy-day");
+    b.setAttribute("aria-pressed", state.daily.easy ? "true" : "false");
+    b.classList.toggle("on", !!state.daily.easy);
+    b.textContent = state.daily.easy ? "🌿 יום קל · " + EASY_DAY_MINUTES + " דק׳" : "🌿 יום קל";
+    b.onclick = () => {
+      state.daily.easy = !state.daily.easy; saveState();
+      toast(state.daily.easy ? "יום קל 🌿 — היעד להיום הוא רק " + EASY_DAY_MINUTES + " דקות. גם זה שומר על הרצף!" : "חזרנו ליעד הרגיל 💪", 3500);
+      goHome();
+    };
+  }
+
+  function weekCutoff() { const x = new Date(); x.setDate(x.getDate() - 6); return todayStr(x); }
+  function weekXp() { rollDaily(); return H.weeklyXp(state.history, state.daily, weekCutoff()); }
+  function renderWeekGoal() {
+    const goal = state.settings.weeklyXpGoal || 50, xp = weekXp();
+    const pct = Math.min(100, Math.round((xp / goal) * 100));
+    $("week-goal-num").innerHTML = '<bdi dir="ltr">' + xp + " / " + goal + " XP</bdi>";
+    $("week-goal-bar").style.width = pct + "%";
+    $("week-goal-text").innerHTML = xp >= goal ? "עמדת ביעד השבועי! 🎉" : "עוד <bdi dir=\"ltr\">" + (goal - xp) + " XP</bdi> ליעד השבועי";
+    $("btn-share-week").onclick = shareWeek;
+  }
+  function shareWeek() {
+    const text = "השבוע צברתי " + weekXp() + " XP ורצף של " + state.streak + " ימים במסע לאנגלית 🔥 מי צוברת יותר? " + location.href.split("#")[0];
+    if (navigator.share) { navigator.share({ text }).catch(() => {}); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast("הטקסט הועתק — אפשר להדביק בהודעה 💌", 3500), () => toast(esc(text), 6000));
+    else toast(esc(text), 6000);
+  }
+
+  /** Home nudges: weekly backup reminder + "add to home screen" hint. Both dismissible. */
+  let deferredInstall = null;
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstall = e; });
+  const isStandalone = () => (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+  const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent || "");
+  function renderBanners() {
+    const box = $("home-banners");
+    box.innerHTML = "";
+    const done = realLessons.filter(l => (state.lessons[l.id] || {}).completed).length;
+    if (H.backupDue(state.lastBackupAt, now(), done >= 1, 7) && now() > (state.settings.backupSnoozeUntil || 0)) {
+      const d = document.createElement("div");
+      d.className = "banner";
+      d.innerHTML = '<span class="banner-icon" aria-hidden="true">💾</span><div class="banner-text"><b>זמן לגבות את ההתקדמות</b><span>ההתקדמות שמורה רק בדפדפן הזה. קובץ גיבוי מציל אותה אם משהו יימחק.</span></div><div class="banner-actions"><button type="button" class="btn btn-primary small" data-act="backup">גבי עכשיו</button><button type="button" class="link-btn" data-act="later">אחר כך</button></div>';
+      d.querySelector('[data-act="backup"]').addEventListener("click", () => { exportProgress(); goHome(); });
+      d.querySelector('[data-act="later"]').addEventListener("click", () => { state.settings.backupSnoozeUntil = now() + 2 * H.DAY; saveState(); goHome(); });
+      box.appendChild(d);
+    }
+    if (!state.settings.installDismissed && !isStandalone() && (deferredInstall || isIos())) {
+      const d = document.createElement("div");
+      d.className = "banner";
+      d.innerHTML = '<span class="banner-icon" aria-hidden="true">📲</span><div class="banner-text"><b>להוסיף למסך הבית</b><span>' + (deferredInstall ? "ככה האפליקציה נפתחת במהירות וגם עובדת בלי אינטרנט." : "בספארי: לחצי על כפתור השיתוף ואז «הוסף למסך הבית».") + '</span></div><div class="banner-actions">' + (deferredInstall ? '<button type="button" class="btn btn-primary small" data-act="install">התקיני</button>' : "") + '<button type="button" class="link-btn" data-act="dismiss">לא עכשיו</button></div>';
+      const inst = d.querySelector('[data-act="install"]');
+      if (inst) inst.addEventListener("click", () => { deferredInstall.prompt(); deferredInstall = null; goHome(); });
+      d.querySelector('[data-act="dismiss"]').addEventListener("click", () => { state.settings.installDismissed = true; saveState(); goHome(); });
+      box.appendChild(d);
+    }
   }
 
   /* ============================================================
@@ -1001,6 +1122,13 @@
       $("badge-name").textContent = newlyUnlocked[0].name;
       announceBadges(newlyUnlocked.slice(1));
     } else $("badge-unlock").classList.add("hidden");
+    const unit = C.units.find(u => u.id === l.unit);
+    if (unit && H.unitComplete(unit, state.lessons) && !state.celebratedUnits[unit.id]) {
+      state.celebratedUnits[unit.id] = true; saveState();
+      $("unit-name").textContent = unit.icon + " " + unit.title;
+      $("unit-unlock").classList.remove("hidden");
+      launchConfetti();
+    } else $("unit-unlock").classList.add("hidden");
     pendingCertificate = checkCertificate();
     session = null;
     showScreen("screen-reward");
@@ -1263,12 +1391,31 @@
       lessonBody.innerHTML = header(ex) + '<div class="q-word-en" dir="ltr" lang="en">' + esc(plainOf(ex.prompt)) + '</div><div class="q-audio-row">' + sayButtons(ex.audio, true) + "</div>" + (ex.he ? '<div class="hint-line">' + esc(ex.he) + "</div>" : "") +
         '<div class="speak-box">' + (STT.supported ? '<button class="mic-btn" id="mic-btn" aria-label="לחצי ודברי">🎙️</button><div class="speak-status" id="speak-status" aria-live="polite">הקשיבי, ואז לחצי על המיקרופון ואמרי את המשפט.</div>'
           : '<div class="speak-status">הדפדפן הזה לא תומך בזיהוי דיבור (עובד בדרך כלל ב-Chrome וב-Edge). אמרי את המשפט בקול ולחצי «אמרתי».</div>') +
+        (Shadow.supported ? '<div class="shadow-box"><button type="button" class="btn btn-ghost small" id="shadow-rec">⏺️ הקליטי והשווי למקור</button><div class="shadow-status speak-status" id="shadow-status" aria-live="polite"></div><div class="shadow-actions hidden" id="shadow-actions"><button type="button" class="btn btn-ghost small" id="shadow-play">▶️ שמעי שוב: מקור ואני</button></div></div>' : "") +
         '<div class="speak-actions"><button class="btn btn-ghost small" id="self-mark">אמרתי את זה ✔</button><button class="btn btn-ghost small" id="skip-speak">דלגי הפעם</button></div>' +
         '<p class="speak-note">הבדיקה בודקת רק אם המילים הנכונות נאמרו — לא מדרגת מבטא.</p></div>';
       setAction("אפשר גם לדלג", true, "check");
       current.check = () => ({ skipped: true });
       $("self-mark").addEventListener("click", () => resolve({ ok: true, selfMarked: true }));
       $("skip-speak").addEventListener("click", () => resolve({ skipped: true }));
+      if (Shadow.supported) {
+        let recording = null, lastUrl = null;
+        const recBtn = $("shadow-rec"), st = $("shadow-status"), acts = $("shadow-actions");
+        const compare = async () => { if (!lastUrl) return; await Audio.speakAsync(ex.audio || plainOf(ex.prompt)); await Shadow.playUrl(lastUrl); };
+        recBtn.addEventListener("click", async () => {
+          if (recording) { recording.stop(); return; }
+          try {
+            Audio.stop();
+            recording = await Shadow.record(8000);
+            recBtn.textContent = "⏹️ סיימתי"; st.textContent = "מקליטה... אמרי את המשפט 🎙️";
+            lastUrl = await recording.result(); recording = null;
+            recBtn.textContent = "⏺️ הקלטה חדשה"; st.textContent = "מקשיבים: קודם המקור, אחר כך את 🎧"; acts.classList.remove("hidden");
+            await compare();
+            st.textContent = "הקשבת? שימי לב לקצב ולצלילים, ואפשר לנסות שוב.";
+          } catch (e) { recording = null; recBtn.textContent = "⏺️ הקליטי והשווי למקור"; st.textContent = "אין גישה למיקרופון. אפשר לאשר בהגדרות הדפדפן."; }
+        });
+        $("shadow-play").addEventListener("click", compare);
+      }
       if (!STT.supported) return;
       let tries = 0, listening = null;
       const status = $("speak-status"), mic = $("mic-btn");
@@ -1309,6 +1456,119 @@
     });
     showScreen("screen-reading");
   }
+
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-seg]");
+    if (!b) return;
+    if (b.dataset.seg === "screen-listen") goListen(); else goReading();
+  });
+
+  /* ============================================================
+     Listening — hear first, then answer comprehension questions
+     ============================================================ */
+  function goListen() {
+    const list = $("listen-list");
+    list.innerHTML = "";
+    LISTENING.forEach(p => {
+      const done = state.listened[p.id];
+      const b = document.createElement("button");
+      b.className = "reading-item" + (done ? " done" : "");
+      b.innerHTML = '<span class="reading-icon" aria-hidden="true">' + p.emoji + '</span><span class="plan-text"><b>' + esc(p.title) + "</b><span>" +
+        LEVEL_NAME[p.level] + " · כ-" + p.minutes + " דקות" + (done ? " · הושלם ✓" : "") + "</span></span>";
+      b.addEventListener("click", () => openListening(p));
+      list.appendChild(b);
+    });
+    showScreen("screen-listen");
+  }
+
+  let listen = null;
+  function openListening(p) {
+    listen = { p, qi: 0, correct: 0, start: now(), playing: 0, answered: false };
+    $("listen-title").textContent = p.emoji + " " + p.title;
+    renderListenIntro();
+    showScreen("screen-listen-play");
+  }
+  function stopListening() { if (listen) listen.playing++; Audio.stop(); }
+  function renderListenIntro() {
+    const p = listen.p, body = $("listen-body"), main = $("btn-listen-main");
+    $("listen-feedback").classList.add("hidden");
+    body.innerHTML = '<div class="q-kicker">שלב 1 · מקשיבים</div><h2 class="q-title">הקשיבי לקטע ואז נענה על שאלות</h2>' +
+      '<div class="listen-player"><button type="button" class="listen-play" id="listen-play" aria-label="השמעת הקטע">▶</button>' +
+      '<div class="listen-actions"><button type="button" class="btn btn-ghost small" id="listen-slow">🐢 לאט</button><button type="button" class="btn btn-ghost small" id="listen-text">👁️ הצגת טקסט</button></div>' +
+      '<div class="speak-status" id="listen-status" aria-live="polite">' + p.lines.length + " משפטים · אפשר להקשיב כמה פעמים שרוצים</div></div>" +
+      '<div id="listen-lines" class="listen-lines hidden"></div>';
+    main.textContent = "לשאלות"; main.disabled = false; main.onclick = () => { stopListening(); renderListenQuestion(); };
+    const play = async slow => {
+      stopListening();
+      const token = ++listen.playing;
+      $("listen-play").classList.add("playing");
+      for (let i = 0; i < p.lines.length; i++) {
+        if (listen.playing !== token) return;
+        $("listen-status").textContent = "משפט " + (i + 1) + " מתוך " + p.lines.length;
+        const li = document.querySelector('#listen-lines [data-i="' + i + '"]'); if (li) li.classList.add("now");
+        await Audio.speakAsync(p.lines[i][0].replace(/^[A-Za-z]+:\s*/, ""), slow);
+        if (li) li.classList.remove("now");
+        await new Promise(r => setTimeout(r, 350));
+      }
+      if (listen.playing === token) { $("listen-play").classList.remove("playing"); $("listen-status").textContent = "הסתיים. אפשר להקשיב שוב או לעבור לשאלות."; }
+    };
+    $("listen-play").addEventListener("click", () => play(false));
+    $("listen-slow").addEventListener("click", () => play(true));
+    $("listen-text").addEventListener("click", () => {
+      const box = $("listen-lines");
+      box.innerHTML = p.lines.map((l, i) => '<div class="listen-line" data-i="' + i + '"><button type="button" class="en en-say" dir="ltr" lang="en" data-say="' + esc(l[0].replace(/^[A-Za-z]+:\s*/, "")) + '">' + esc(l[0]) + '</button><span class="article-he">' + esc(l[1]) + "</span></div>").join("");
+      box.classList.toggle("hidden");
+    });
+  }
+  function renderListenQuestion() {
+    const p = listen.p, q = p.questions[listen.qi], body = $("listen-body"), main = $("btn-listen-main"), fb = $("listen-feedback");
+    listen.answered = false; fb.classList.add("hidden");
+    const opts = engine.shuffle([q.a].concat(q.o));
+    body.innerHTML = '<div class="q-kicker">שלב 2 · שאלה ' + (listen.qi + 1) + " מתוך " + p.questions.length + '</div><h2 class="q-title">' + esc(q.q) + '</h2>' +
+      '<div class="q-audio-row"><button type="button" class="btn btn-ghost small" id="listen-again">🔁 שמעי שוב</button></div>' +
+      '<div class="options-grid">' + opts.map(o => '<button type="button" class="option" data-v="' + esc(o) + '"><span>' + esc(o) + "</span></button>").join("") + "</div>";
+    main.textContent = "בדיקה"; main.disabled = true; main.onclick = null;
+    let chosen = null;
+    $("listen-again").addEventListener("click", async () => { const token = ++listen.playing; for (const l of p.lines) { if (listen.playing !== token) return; await Audio.speakAsync(l[0].replace(/^[A-Za-z]+:\s*/, "")); await new Promise(r => setTimeout(r, 300)); } });
+    body.querySelectorAll(".option").forEach(b => b.addEventListener("click", () => {
+      if (listen.answered) return;
+      body.querySelectorAll(".option").forEach(x => x.classList.remove("selected")); b.classList.add("selected"); chosen = b; main.disabled = false;
+    }));
+    main.onclick = () => {
+      if (!chosen || listen.answered) return;
+      listen.answered = true; stopListening();
+      const ok = chosen.dataset.v === q.a;
+      if (ok) listen.correct++;
+      body.querySelectorAll(".option").forEach(x => { x.disabled = true; if (x.dataset.v === q.a) x.classList.add("correct"); });
+      if (!ok) chosen.classList.add("wrong");
+      fb.className = "feedback-banner " + (ok ? "good" : "bad");
+      fb.innerHTML = '<div class="feedback-icon" aria-hidden="true">' + (ok ? "✅" : "💡") + '</div><div class="feedback-text"><div class="feedback-title">' + (ok ? "נכון!" : "כמעט") + '</div>' + (ok ? "" : '<div class="feedback-sub">התשובה: ' + esc(q.a) + "</div>") + "</div>";
+      const last = listen.qi >= p.questions.length - 1;
+      main.textContent = last ? "לסיום" : "הבאה";
+      main.onclick = () => { if (last) finishListening(); else { listen.qi++; renderListenQuestion(); } };
+    };
+  }
+  function finishListening() {
+    const p = listen.p, first = !state.listened[p.id];
+    const total = p.questions.length, score = listen.correct;
+    const xp = first ? Math.max(1, score) : 0;
+    const prev = state.listened[p.id] || {};
+    state.listened[p.id] = { at: now(), best: Math.max(prev.best || 0, score) };
+    if (xp) { state.stars += xp; rollDaily(); state.daily.xp = (state.daily.xp || 0) + xp; }
+    addStudyTime((now() - listen.start) / 1000);
+    markStudiedToday();
+    saveState();
+    const lines = p.lines;
+    listen = null;
+    $("listen-feedback").classList.add("hidden");
+    $("listen-body").innerHTML = '<div class="reward-card listen-result"><div class="reward-burst" aria-hidden="true">' + (score === total ? "🎉" : "👏") + '</div><h2>' + score + " מתוך " + total + ' תשובות נכונות</h2>' +
+      '<p class="reward-message">' + (score === total ? "הבנת הכול! 🌟" : "הקשבה היא מיומנות שמשתפרת. כדאי להקשיב שוב ולקרוא את הטקסט.") + "</p>" +
+      (xp ? '<p class="reward-note">+' + xp + " XP ⚡</p>" : "") +
+      '<div class="listen-lines">' + lines.map(l => '<div class="listen-line"><button type="button" class="en en-say" dir="ltr" lang="en" data-say="' + esc(l[0].replace(/^[A-Za-z]+:\s*/, "")) + '">' + esc(l[0]) + '</button><span class="article-he">' + esc(l[1]) + "</span></div>").join("") + "</div></div>";
+    const main = $("btn-listen-main");
+    main.textContent = "חזרה לרשימה"; main.disabled = false; main.onclick = goListen;
+  }
+  $("btn-listen-exit").addEventListener("click", () => { stopListening(); listen = null; goListen(); });
 
   let article = null;
   function openArticle(a) {
@@ -1604,6 +1864,7 @@
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+    state.lastBackupAt = now(); saveState();
     toast("הקובץ ירד למחשב/לטלפון שלך 💾", 3000);
   }
 
@@ -1669,6 +1930,36 @@
       "</div>";
   }
 
+  /** Vocabulary the learner has gotten wrong, weakest first, with a button that practises exactly those words. */
+  function troubleWords() {
+    return H.troubleKeys(state.items, masteryOf, 8).map(k => vocabById[k.slice(2)]).filter(Boolean);
+  }
+  function troubleWordsHtml() {
+    const ws = troubleWords();
+    if (!ws.length) return "";
+    return '<h2 class="sec-title">מילים שקשה לי 🎯</h2><div class="trouble-card"><div class="trouble-words">' +
+      ws.map(w => '<span class="trouble-word"><span aria-hidden="true">' + (w.emoji || "") + "</span> " + enSpan(w.word) + '<small>' + esc(w.translation) + "</small></span>").join("") +
+      '</div><button class="btn btn-primary" id="trouble-start">תרגול המילים האלה</button></div>';
+  }
+  function startTroubleWords() {
+    const keys = H.troubleKeys(state.items, masteryOf, 8);
+    const items = keys.map(k => engine.reviewItemFor(k, 2)).filter(Boolean);
+    if (!items.length) { toast("אין כרגע מילים קשות — כל הכבוד! 🌟"); return; }
+    newSession("practice", engine.shuffle(items), { title: "מילים שקשה לי" });
+  }
+
+  /** A recurring daily calendar event (.ics) so the phone's own calendar reminds her — no server or notifications needed. */
+  function downloadReminder() {
+    const ics = H.buildReminderIcs({ time: state.settings.reminderTime || "20:00", url: location.href.split("#")[0], title: "המסע לאנגלית 📘", description: "זמן לתרגל אנגלית! אפילו 5 דקות שומרות על הרצף." });
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "english-journey-reminder.ics";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast("הקובץ ירד. פתחי אותו כדי להוסיף את התזכורת היומית ליומן ⏰", 4500);
+  }
+
   /** "Mastery Map": per-concept mastery for concepts the learner has actually attempted, weakest first (most actionable). */
   function masteryMapHtml() {
     const rows = AD.conceptMasterySnapshot(C.concepts.filter(c => !c.planned), cid => masteryOf("c:" + cid))
@@ -1698,6 +1989,7 @@
       weeklyStatsHtml() +
       '<h2 class="sec-title">מיומנויות</h2><div class="skills">' + skills.map(k => '<div class="skill-row"><span class="skill-name">' + SKILL_NAME[k.s] + '</span><span class="progress-bar-outer" role="img" aria-label="' + SKILL_NAME[k.s] + " " + k.p + '%"><span class="progress-bar-inner" style="width:' + k.p + '%"></span></span><span class="skill-val">' + (k.n ? k.p + "% · " + skillWord(k.p) : "עוד לא תרגלת") + "</span></div>").join("") + "</div>" +
       '<p class="hint-line">כל מיומנות נמדדת בנפרד: תשובות אחרונות שוקלות יותר, כתיבה ודיבור שוקלים יותר מבחירה מרשימה, ומה שלא חזרת עליו מזמן יורד קצת.</p>' +
+      troubleWordsHtml() +
       masteryMapHtml() +
       (Object.keys(state.remediation).length ? '<h2 class="sec-title">נושאים לחיזוק</h2><div class="rem-list">' + Object.keys(state.remediation).filter(c => conceptById[c]).map(c => '<button class="chip" data-rem="' + c + '">🎯 ' + rich(conceptById[c].title, { noAudio: true }) + "</button>").join("") + "</div>" : "") +
       (certs.length ? '<h2 class="sec-title">תעודות</h2><div class="rem-list">' + certs.map(c => '<button class="chip" data-cert="' + c + '">🏆 ' + LEVEL_NAME[c] + "</button>").join("") + "</div>" : "") +
@@ -1705,6 +1997,9 @@
       '<h2 class="sec-title">הגדרות</h2><div class="settings">' +
       '<label class="set-row"><span>השמעה איטית כברירת מחדל 🐢</span><input type="checkbox" id="set-slow"' + (state.settings.slowAudio ? " checked" : "") + "></label>" +
       '<label class="set-row"><span>זמן יומי</span><select id="set-min">' + [10, 20, 30, 45].map(m => '<option value="' + m + '"' + (m === state.onboarding.dailyMinutes ? " selected" : "") + ">" + m + " דקות</option>").join("") + "</select></label>" +
+      '<label class="set-row"><span>יעד XP שבועי 🏆</span><select id="set-weekly">' + [30, 50, 80, 120].map(m => '<option value="' + m + '"' + (m === (state.settings.weeklyXpGoal || 50) ? " selected" : "") + ">" + m + " XP</option>").join("") + "</select></label>" +
+      '<label class="set-row"><span>שעת תזכורת יומית ⏰</span><input type="time" id="set-remind-time" value="' + esc(state.settings.reminderTime || "20:00") + '"></label>' +
+      '<button class="btn btn-ghost" id="set-remind">הוסיפי תזכורת יומית ליומן 📅</button>' +
       voiceRowHtml() +
       '<button class="btn btn-ghost" id="set-onb">לעדכן רמה / מטרות</button>' +
       '<button class="btn btn-ghost" id="set-export">ייצוא התקדמות לקובץ 💾</button>' +
@@ -1715,6 +2010,9 @@
     $("set-slow").addEventListener("change", e => { state.settings.slowAudio = e.target.checked; saveState(); });
     $("set-min").addEventListener("change", e => { state.onboarding.dailyMinutes = Number(e.target.value); saveState(); });
     if ($("set-voice")) $("set-voice").addEventListener("change", e => { state.settings.voiceURI = e.target.value || null; Audio.voice = Audio.pickVoice(); saveState(); Audio.speak("Hello! This is my voice."); });
+    $("set-weekly").addEventListener("change", e => { state.settings.weeklyXpGoal = Number(e.target.value); saveState(); });
+    $("set-remind-time").addEventListener("change", e => { state.settings.reminderTime = e.target.value || "20:00"; saveState(); });
+    $("set-remind").addEventListener("click", downloadReminder);
     $("set-onb").addEventListener("click", startOnboarding);
     $("set-export").addEventListener("click", exportProgress);
     $("set-import").addEventListener("click", () => $("set-import-file").click());
@@ -1725,6 +2023,7 @@
         state = defaultState(); saveState(); initWelcomeScreen(); showScreen("screen-welcome");
       });
     });
+    const tw = $("trouble-start"); if (tw) tw.addEventListener("click", startTroubleWords);
     $("progress-body").querySelectorAll("[data-rem]").forEach(b => b.addEventListener("click", () => startRemediation(b.dataset.rem)));
     $("progress-body").querySelectorAll("[data-practice]").forEach(b => b.addEventListener("click", () => startRemediation(b.dataset.practice)));
     $("progress-body").querySelectorAll("[data-cert]").forEach(b => b.addEventListener("click", () => showCertificate(b.dataset.cert)));

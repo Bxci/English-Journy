@@ -760,3 +760,53 @@ h1,h2{ letter-spacing:-.2px; }
 .chat-type-row .text-input{ margin-bottom:0; width:auto; }
 .mission-step-card #mission-hint{ width:100%; }
 .xp-box small{ white-space:nowrap; font-size:11px; }
+
+/* ---------- Habits: weekly goal, easy day, banners ---------- */
+.week-goal{ background: var(--card); border:2px solid var(--line); border-bottom-width:4px; border-radius: var(--radius); padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
+.week-goal-head{ display:flex; justify-content:space-between; align-items:baseline; font-size:15px; }
+.week-goal-head span{ font-weight:800; color: var(--primary-dark); }
+.week-goal-foot{ display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:13px; font-weight:700; color: var(--ink-soft); }
+.week-goal-foot .btn-ghost.small{ margin-top:0; }
+.easy-day-btn{ background: var(--soft); border:2px solid var(--line); border-bottom-width:4px; border-radius:999px; padding:4px 12px; font-size:12px; font-weight:800; color: var(--ink-soft); min-height:32px; }
+.easy-day-btn.on{ background: var(--good-bg); border-color: var(--good); color:#1c6b3f; }
+@media (prefers-color-scheme: dark){ .easy-day-btn.on{ color:#8ee8b3; } }
+.today-head{ flex-wrap:wrap; gap:6px; }
+.home-banners{ display:flex; flex-direction:column; gap:12px; }
+.home-banners:empty{ display:none; }
+.banner{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; background: var(--warn-bg); border:2px solid var(--star); border-radius: var(--radius); padding:12px 14px; }
+.banner-icon{ font-size:28px; }
+.banner-text{ flex:1; min-width:160px; display:flex; flex-direction:column; gap:2px; }
+.banner-text b{ font-size:15px; } .banner-text span{ font-size:13px; color: var(--ink-soft); line-height:1.5; }
+.banner-actions{ display:flex; align-items:center; gap:10px; }
+.btn.small{ padding:8px 14px; font-size:14px; min-height:40px; width:auto; }
+
+/* ---------- Reading / listening switch ---------- */
+.seg{ display:flex; gap:8px; margin:0 16px 12px; background: var(--soft); border:2px solid var(--line); border-radius:16px; padding:4px; }
+.seg button{ flex:1; background:transparent; border-radius:12px; padding:10px 8px; font-weight:800; font-size:15px; color: var(--ink-soft); min-height:44px; }
+.seg button.on{ background: var(--card); color: var(--primary-dark); box-shadow:0 2px 0 var(--edge); border:2px solid var(--primary); }
+
+/* ---------- Listening player ---------- */
+.listen-body{ flex:1; padding:10px 16px 20px; display:flex; flex-direction:column; min-width:0; }
+.listen-player{ display:flex; flex-direction:column; align-items:center; gap:14px; margin:18px 0; }
+.listen-play{ width:112px; height:112px; border-radius:50%; background: var(--primary); color:#fff; font-size:44px; box-shadow:0 8px 0 var(--primary-edge); transition: transform .08s ease, box-shadow .08s ease; }
+.listen-play:active{ transform: translateY(6px); box-shadow:0 2px 0 var(--primary-edge); }
+.listen-play.playing{ animation: pulse 1.2s infinite; }
+.listen-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.listen-lines{ display:flex; flex-direction:column; gap:10px; margin-top:8px; }
+.listen-line{ background: var(--card); border:2px solid var(--line); border-radius:14px; padding:10px 14px; display:flex; flex-direction:column; gap:4px; }
+.listen-line.now{ border-color: var(--primary); background: var(--soft); }
+.listen-line .article-en{ text-align:left; font-size:17px; }
+.listen-result{ box-shadow:none; max-width:none; border:none; padding:10px 0; text-align:center; }
+.listen-result .listen-lines{ text-align:right; margin-top:16px; }
+
+/* ---------- Shadowing (record & compare) ---------- */
+.shadow-box{ display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; padding:12px; border:2px dashed var(--line); border-radius:16px; }
+.shadow-actions{ display:flex; gap:8px; }
+
+/* ---------- Trouble words & unit celebration ---------- */
+.trouble-card{ background: var(--card); border:2px solid var(--line); border-bottom-width:4px; border-radius: var(--radius); padding:14px; display:flex; flex-direction:column; gap:14px; }
+.trouble-words{ display:flex; flex-wrap:wrap; gap:8px; }
+.trouble-word{ display:inline-flex; flex-direction:column; align-items:center; gap:2px; background: var(--bad-bg); border:2px solid var(--bad); border-radius:14px; padding:8px 12px; font-weight:800; }
+.trouble-word small{ font-size:12px; color: var(--ink-soft); font-weight:700; }
+.unit-unlock{ border-color: var(--good); background: var(--good-bg); }
+.unit-unlock .badge-title{ color:#1c6b3f; } .unit-unlock .badge-name{ color:#14502e; }

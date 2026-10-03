@@ -69,11 +69,18 @@
           <div class="xp-box"><span aria-hidden="true">⭐</span><b id="xp-total">0</b><small>XP בסך הכל</small></div>
         </div>
       </section>
+      <div id="home-banners" class="home-banners"></div>
+      <section class="week-goal" id="week-goal" aria-label="האתגר השבועי">
+        <div class="week-goal-head"><b>🏆 האתגר השבועי</b><span id="week-goal-num"></span></div>
+        <div class="progress-bar-outer" aria-hidden="true"><div class="progress-bar-inner" id="week-goal-bar"></div></div>
+        <div class="week-goal-foot"><span id="week-goal-text"></span><button type="button" class="btn btn-ghost small" id="btn-share-week">שתפי 💌</button></div>
+      </section>
       <p class="home-flavor" id="home-flavor"></p>
       <div class="today-card">
         <div class="today-head">
           <h2>התוכנית להיום</h2>
           <span class="today-minutes" id="today-minutes"></span>
+          <button type="button" class="easy-day-btn" id="btn-easy-day" aria-pressed="false">🌿 יום קל</button>
         </div>
         <div class="progress-bar-outer" aria-hidden="true"><div class="progress-bar-inner" id="today-bar"></div></div>
         <ol class="plan-list" id="plan-list"></ol>
@@ -134,10 +141,41 @@
     <header class="topbar">
       <div class="topbar-title">קריאה 📖</div>
     </header>
+    <div class="seg" role="group" aria-label="קריאה או האזנה">
+      <button type="button" class="on" data-seg="screen-reading" aria-pressed="true">📖 קריאה</button>
+      <button type="button" data-seg="screen-listen" aria-pressed="false">🎧 האזנה</button>
+    </div>
     <div class="reading-note">
       מאמרים קצרים באנגלית עם תרגום לעברית לכל משפט. אפשר להקיש על כל משפט כדי לשמוע אותו, ולסמן מאמר כ"קראתי" כשמסיימים — המילים החדשות ייכנסו למחזור החזרות שלך.
     </div>
     <div id="reading-list" class="reading-list"></div>
+  </section>
+
+  <!-- ===================== האזנה ===================== -->
+  <section id="screen-listen" class="screen has-nav">
+    <header class="topbar">
+      <div class="topbar-title">האזנה 🎧</div>
+    </header>
+    <div class="seg" role="group" aria-label="קריאה או האזנה">
+      <button type="button" data-seg="screen-reading" aria-pressed="false">📖 קריאה</button>
+      <button type="button" class="on" data-seg="screen-listen" aria-pressed="true">🎧 האזנה</button>
+    </div>
+    <div class="reading-note">
+      קטעים קצרים להאזנה. קודם מקשיבים בלי לראות את הטקסט, ואז עונים על שאלות הבנה. אפשר להקשיב שוב, להאט, ורק בסוף להציג את הטקסט עם התרגום.
+    </div>
+    <div id="listen-list" class="reading-list"></div>
+  </section>
+
+  <section id="screen-listen-play" class="screen">
+    <header class="lesson-topbar">
+      <button class="icon-btn" id="btn-listen-exit" aria-label="יציאה מההאזנה">✖️</button>
+      <div class="chat-title" id="listen-title"></div>
+    </header>
+    <div id="listen-body" class="listen-body"></div>
+    <footer class="lesson-footer">
+      <div id="listen-feedback" class="feedback-banner hidden" role="status"></div>
+      <button id="btn-listen-main" class="btn btn-primary btn-block">לשאלות</button>
+    </footer>
   </section>
 
   <section id="screen-article" class="screen">
@@ -204,6 +242,14 @@
       </div>
       <p class="reward-note" id="reward-note"></p>
 
+      <div id="unit-unlock" class="badge-unlock unit-unlock hidden">
+        <div class="badge-icon" id="unit-icon" aria-hidden="true">🏁</div>
+        <div class="badge-text">
+          <div class="badge-title">סיימת יחידה שלמה!</div>
+          <div id="unit-name" class="badge-name"></div>
+        </div>
+      </div>
+
       <div id="badge-unlock" class="badge-unlock hidden">
         <div class="badge-icon" id="badge-icon" aria-hidden="true">🏅</div>
         <div class="badge-text">
@@ -260,6 +306,7 @@
 <script src="curriculum/course.js"></script>
 <script src="curriculum/articles.js"></script>
 <script src="curriculum/missions.js"></script>
+<script src="curriculum/listening.js"></script>
 <!-- מנוע הלמידה (פונקציות טהורות, נבדקות ב-tests/) -->
 <script src="engine/normalize.js"></script>
 <script src="engine/mastery.js"></script>
@@ -268,6 +315,7 @@
 <script src="engine/mistakes.js"></script>
 <script src="engine/adaptive.js"></script>
 <script src="engine/missions.js"></script>
+<script src="engine/habits.js"></script>
 <script src="engine/exercises.js"></script>
 <!-- הודעות, מתנות, עיטורים, מבחן רמה -->
 <script src="lessons-data.js"></script>
