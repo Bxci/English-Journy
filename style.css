@@ -601,3 +601,24 @@ h1,h2{ letter-spacing:-.2px; }
 #screen-home:not(.active) #btn-home-main{ display:none; }
 
 @media (prefers-reduced-motion: reduce){ .streak-flame{ animation:none; } }
+
+/* ---------- Lesson-complete screen ---------- */
+#screen-reward.active{ background: var(--bg); }
+.reward-card{ position:relative; overflow:hidden; border:2px solid var(--line); border-bottom-width:5px; }
+.reward-card > *:not(.confetti){ position:relative; z-index:1; }
+.reward-card h2{ font-size:26px; color: var(--primary); }
+.reward-burst{ font-size:72px; }
+.reward-gift-box{ background: var(--soft); border:2px solid var(--line); border-bottom-width:5px; border-radius:24px; margin-bottom:14px; }
+.reward-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+.reward-stat{ border:2px solid; border-radius:16px; overflow:hidden; background: var(--card); align-items:stretch; }
+.reward-stat-label{ padding:4px 0; font-size:12px; font-weight:800; color:#fff; text-align:center; }
+.reward-stat-num{ display:flex; justify-content:center; align-items:center; gap:4px; padding:10px 0; font-size:22px; font-weight:800; }
+.reward-stat.xp{ border-color:#ffc93c; } .reward-stat.xp .reward-stat-label{ background:#ffc93c; color:#5c4210; } .reward-stat.xp .reward-stat-num{ color:#c98f00; }
+.reward-stat.acc{ border-color: var(--good); } .reward-stat.acc .reward-stat-label{ background: var(--good); } .reward-stat.acc .reward-stat-num{ color: var(--good-edge); }
+.reward-stat.fire{ border-color: var(--accent); } .reward-stat.fire .reward-stat-label{ background: var(--accent); } .reward-stat.fire .reward-stat-num{ color:#e07a2a; }
+.badge-unlock{ border:2px solid var(--star); }
+.confetti{ position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.confetti i{ position:absolute; top:-14px; width:9px; height:14px; border-radius:2px; opacity:.9; animation: confetti-fall linear forwards; }
+@keyframes confetti-fall{ to{ top:105%; translate: 30px 0; rotate: 540deg; opacity:.9; } }
+@media (prefers-reduced-motion: reduce){ .confetti{ display:none; } }
+#reward-stars-earned, #reward-accuracy{ direction:ltr; unicode-bidi:isolate; }

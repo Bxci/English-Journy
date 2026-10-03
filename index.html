@@ -54,7 +54,7 @@
       <div class="topbar-title" id="home-greeting"></div>
       <div class="topbar-stats">
         <span class="stat" title="ימי למידה ברצף"><span aria-hidden="true">🔥</span> <b id="stat-streak">0</b><span class="sr-only"> ימי רצף</span></span>
-        <span class="stat" title="כוכבים שנאספו"><span aria-hidden="true">⭐</span> <b id="stat-stars">0</b><span class="sr-only"> כוכבים</span></span>
+        <span class="stat" title="XP שנאסף"><span aria-hidden="true">⚡</span> <b id="stat-stars">0</b><span class="sr-only"> XP</span></span>
       </div>
     </header>
     <div class="home-body">
@@ -191,15 +191,16 @@
   <!-- ===================== סיום שיעור / מתנה ===================== -->
   <section id="screen-reward" class="screen">
     <div class="reward-card">
+      <div class="confetti" id="reward-confetti" aria-hidden="true"></div>
       <div class="reward-burst" id="reward-burst" aria-hidden="true">🎉</div>
       <h2 id="reward-title">שיעור הושלם!</h2>
       <button class="reward-gift-box" id="reward-gift-box" aria-label="לפתוח את המתנה">🎁</button>
       <p class="reward-message" id="reward-message"></p>
 
       <div class="reward-stats">
-        <div class="reward-stat"><span class="reward-stat-num" id="reward-stars-earned">+0</span><span class="reward-stat-label">כוכבים</span></div>
-        <div class="reward-stat"><span class="reward-stat-num" id="reward-accuracy">0%</span><span class="reward-stat-label">דיוק</span></div>
-        <div class="reward-stat"><span class="reward-stat-num" id="reward-streak">0</span><span class="reward-stat-label">ימי רצף</span></div>
+        <div class="reward-stat xp"><span class="reward-stat-label">XP</span><span class="reward-stat-num"><span aria-hidden="true">⚡</span><span id="reward-stars-earned">+0</span></span></div>
+        <div class="reward-stat acc"><span class="reward-stat-label">דיוק</span><span class="reward-stat-num"><span aria-hidden="true">🎯</span><span id="reward-accuracy">0%</span></span></div>
+        <div class="reward-stat fire"><span class="reward-stat-label">ימי רצף</span><span class="reward-stat-num"><span aria-hidden="true">🔥</span><span id="reward-streak">0</span></span></div>
       </div>
       <p class="reward-note" id="reward-note"></p>
 

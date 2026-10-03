@@ -935,6 +935,27 @@
     ]);
   }
 
+  /** Reward-screen flourishes; both are purely visual and skipped for reduced-motion users. */
+  const reducedMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function countUp(el, target, prefix) {
+    el.textContent = prefix + target;
+    if (reducedMotion() || target < 2) return;
+    let n = 0;
+    const iv = setInterval(() => { n++; el.textContent = prefix + n; if (n >= target) clearInterval(iv); }, 160);
+    el.textContent = prefix + 0;
+  }
+  function launchConfetti() {
+    const box = $("reward-confetti");
+    box.innerHTML = "";
+    if (reducedMotion()) return;
+    const colors = ["#7c5cff", "#ff9f5a", "#35c46f", "#ffc93c", "#ff5d6c"];
+    for (let i = 0; i < 28; i++) {
+      const p = document.createElement("i");
+      p.style.cssText = "left:" + Math.round(Math.random() * 100) + "%;background:" + colors[i % colors.length] + ";animation-delay:" + (Math.random() * 0.6).toFixed(2) + "s;animation-duration:" + (1.6 + Math.random() * 1.4).toFixed(2) + "s;transform:rotate(" + Math.round(Math.random() * 360) + "deg)";
+      box.appendChild(p);
+    }
+  }
+
   function completeLesson(l, score, weak) {
     const p = state.lessons[l.id] || {};
     const first = !p.completed;
@@ -948,7 +969,8 @@
 
     $("reward-title").textContent = first ? "סיימת: " + plainOf(l.title) + " 🎉" : "תרגלת שוב: " + plainOf(l.title) + " 💪";
     $("reward-message").textContent = pick(ENCOURAGEMENT_MESSAGES);
-    $("reward-stars-earned").textContent = "+" + starsEarned;
+    countUp($("reward-stars-earned"), starsEarned, "+");
+    launchConfetti();
     $("reward-accuracy").textContent = M.displayPercent(score) + "%";
     $("reward-streak").textContent = state.streak;
     $("reward-note").textContent = weak ? "השיעור נפתח קדימה, והנושאים שהיו קשים יחזרו בחזרה היומית." : "";
@@ -1531,7 +1553,7 @@
     saveState();
     const newlyUnlocked = checkBadges();
     mission = null;
-    interstitial('<div class="reward-burst" aria-hidden="true">🎉</div><h2>השלמת את המשימה!</h2><p class="reward-message">הצלחת להעביר את המסר באנגלית — זה העיקר.</p>' + (already ? "" : '<p class="reward-note">+3 כוכבים ⭐</p>') +
+    interstitial('<div class="reward-burst" aria-hidden="true">🎉</div><h2>השלמת את המשימה!</h2><p class="reward-message">הצלחת להעביר את המסר באנגלית — זה העיקר.</p>' + (already ? "" : '<p class="reward-note">+3 XP ⚡</p>') +
       newlyUnlocked.map(b => '<p class="reward-note">' + b.icon + " עיטור חדש: " + esc(b.name) + "</p>").join(""), [{ label: "חזרה לשיחות ומשימות", run: goConvos }]);
   }
 
